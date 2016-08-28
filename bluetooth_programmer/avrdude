@@ -1,0 +1,34 @@
+#!/bin/bash
+
+if [[ $@ == *"rfcomm"* ]]
+then
+port=/dev/rfcomm0
+echo "1"
+pkill avrdude_orig
+pkill cat
+pkill minicom
+pkill arduino_reset
+echo "2"
+sleep 5
+echo "3"
+stty 115200 line  0 min 1 time 5 ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke -F $port
+echo "4"
+/home/bernd/arduino_reset &
+echo $!
+
+cat_pid=$!
+while [ "1" == "1" ]
+do
+    rfcomm | grep 'connected' &> /dev/null
+    if [ $? == 0 ]; then
+        echo "resetted"
+        /usr/share/arduino/hardware/tools/avr/bin/avrdude_orig $@
+        kill $cat_pid
+        break
+    fi
+    sleep 0.1
+done
+else
+    /usr/share/arduino/hardware/tools/avr/bin/avrdude_orig $@
+fi
+

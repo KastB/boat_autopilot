@@ -1,0 +1,1 @@
+gcc -Wall arduino_reset.cc -o arduino_reset
