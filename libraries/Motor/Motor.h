@@ -22,6 +22,7 @@ public:
 	void moveRel(int value);
 	void stop();
 	void gotoParking();
+	void initialize();
 
 	bool getBlocked();
 	int getCurrentPosition();
@@ -55,12 +56,18 @@ private:
 
 	bool m_blocked;
 
+	int m_initStatus;
+	int m_initMax;
+	int m_initMin;
+	unsigned long m_initLastCommand;
+	unsigned long m_initMinTime;
+
 	void motor_cw (int speed);
 	void motor_ccw(int speed);
 	void motor_stop();
 
 
-	// maxSpeed is 1024
+	// maxSpeed is 800
 	void controlMotor(direction dir, int speed, bool overwrite=false);
 
 	RotaryEncoder *m_rotaryEncoder;

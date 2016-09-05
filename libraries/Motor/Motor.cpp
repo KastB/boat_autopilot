@@ -33,6 +33,12 @@ Motor::Motor(unsigned long interval, RotaryEncoder* rotary_encoder, int ina, int
 	m_parking = false;
 	m_blocked = false;
 
+	m_initMax = 0.0;
+	m_initMin = 0.0;
+	m_initStatus = -1;
+	m_initLastCommand = 0;
+	m_initMinTime = 2000;
+
 	pinMode(m_inaPin, OUTPUT);
 	pinMode(m_inbPin, OUTPUT);
 	pinMode(m_diagaPin, INPUT);
@@ -46,6 +52,18 @@ Motor::Motor(unsigned long interval, RotaryEncoder* rotary_encoder, int ina, int
 Motor::~Motor() {
 }
 
+
+void Motor::initialize()
+{
+	if(m_initStatus == -1)
+	{
+		m_initStatus = 1;
+	}
+	else
+	{
+		m_initStatus = 5;
+	}
+}
 
 void Motor::gotoPos(int pos)
 {
@@ -147,6 +165,58 @@ int Motor::getCurrentPosition()
 
 void Motor::update()
 {
+	if(m_initLastCommand > millis())
+		m_initLastCommand = millis();
+	if(m_initLastCommand + m_initMinTime < millis())
+	{
+		m_initLastCommand = millis();
+		//Serial.println(m_initStatus);
+
+		if(m_initStatus == 1)
+		{
+			if(abs(m_targetPosition - m_rotaryEncoder->getCurrentPosition()) < 5)
+			{
+				m_targetPosition += 150;
+				m_initStatus = 2;
+			}
+		}
+		else if(m_initStatus == 2)
+		{
+			if(m_targetPosition == m_rotaryEncoder->getCurrentPosition())
+			{
+				m_targetPosition -= 1500;
+				m_initStatus = 3;
+			}
+		}
+		else if(m_initStatus == 3)
+		{
+			if(m_targetPosition == m_rotaryEncoder->getCurrentPosition())
+			{
+				m_initMin = m_targetPosition;
+				m_targetPosition += 1500;
+				m_initStatus = 4;
+			}
+		}
+		else if(m_initStatus == 4)
+		{
+			if(m_targetPosition == m_rotaryEncoder->getCurrentPosition())
+			{
+				m_initMax = m_targetPosition;
+				Serial.print(m_initMax);
+				Serial.print("##");
+				Serial.println(m_initMin);
+				m_rotaryEncoder->setCurrentPosition((m_initMax - m_initMin)/2);
+				m_initStatus = 5;
+			}
+		}
+		else if(m_initStatus == 5)
+		{
+			m_targetPosition = 0;
+			m_initStatus = 6;
+		}
+	}
+
+
 	//Distance => Speed
 	//Sign 	   => Direction
 	if(m_parking)
