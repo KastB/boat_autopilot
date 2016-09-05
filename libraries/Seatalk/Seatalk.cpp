@@ -36,6 +36,12 @@ void Seatalk::update()
 	if(!Serial2.available()) //no Data since last check => next time a new message begins
 	{
 		m_rawReadCount = 0;
+		m_rawMessage[0] = 0;
+		m_rawMessage[1] = 0;
+		m_rawMessage[2] = 0;
+		m_rawMessage[3] = 0;
+		m_rawMessage[4] = 0;
+		m_rawMessage[5] = 0;
 	}
 	while(Serial2.available()) // There is something to be read
 	{
@@ -98,6 +104,7 @@ short Seatalk::expectedMessageLength(short msgID)
 		case 0x11:return 1;break;
 		case 0x20:return 1;break;
 		case 0x21:return 2;break;
+		case 0x24:return 2;break;
 		case 0x22:return 2;break;
 		case 0x23:return 1;break;
 		case 0x30:return 0;break;
@@ -127,7 +134,7 @@ void Seatalk::parseMessage()
 			m_depth.defective	= m_rawMessage[2] & 0b00000100;
 			m_depth.deepAlarm	= m_rawMessage[2] & 0b00000010;
 			m_depth.shallowAlarm= m_rawMessage[2] & 0b00000001;
-			m_depth.depthBelowTransductor = (m_rawMessage[3] * 256 + m_rawMessage[4]) * 0.3048 / 10.0f;
+			m_depth.depthBelowTransductor = ((float)m_rawMessage[4] * 256 + m_rawMessage[3]) * 0.3048 / 10.0f;
 			break;
 	/*
 		10  01  XX  YY  Apparent Wind Angle: XXYY/2 degrees right of bow
@@ -135,7 +142,7 @@ void Seatalk::parseMessage()
 						 Corresponding NMEA sentence: MWV
 	*/
 		case 0x10:
-			m_wind.apparentAngle = (m_rawMessage[2] * 256 + m_rawMessage[3]) / (-2.0*180/M_PI) -M_PI;
+			m_wind.apparentAngle = ((float)m_rawMessage[2] * 256 + m_rawMessage[3]) / 2.0;
 			break;
 	/*
 		11  01  XX  0Y  Apparent Wind Speed: (XX & 0x7F) + Y/10 Knots
@@ -144,26 +151,45 @@ void Seatalk::parseMessage()
 						 Corresponding NMEA sentence: MWV
 	 */
 		case 0x11:
-			m_wind.apparentSpeed = ((m_rawMessage[2] & 0x7F) + (m_rawMessage[3] & 0x0F)) / 10.0;
+			m_wind.apparentSpeed = ((float)(m_rawMessage[2] & 0x7F) + (m_rawMessage[3] & 0x0F)) / 10.0;
 			break;
 	/*
 		 20  01  XX  XX  Speed through water: XXXX/10 Knots
 						 Corresponding NMEA sentence: VHW
 	 */
 		case 0x20:
-			m_speed.speed = (m_rawMessage[3] * 256 + m_rawMessage[4])/ 10.0f;
+			m_speed.speed = ((float)m_rawMessage[3] * 256 + m_rawMessage[2])/ 10.0f;
 			break;
 	/*
-	 *  21  02  XX  XX  0X  Trip Mileage: XXXXX/100 nautical miles
+	 *  21  02  XX  XX  0X    Mileage: XXXXX/100 nautical miles
 	 */
 		case 0x21:
-			m_speed.tripMileage = (m_rawMessage[3] * (2^12) + m_rawMessage[4] * (2^4) + (m_rawMessage[5] & 0x0F))/ 100.0f;
+	/*		Serial.println("0x21");
+//case 0x24:
+			Serial.println("mileage");
+			Serial.println(m_rawMessage[4]);
+			Serial.println(m_rawMessage[3]);
+			Serial.println(m_rawMessage[2]);
+
+			Serial.println(m_rawMessage[5], BIN);
+			Serial.println(m_rawMessage[4], BIN);
+			Serial.println(m_rawMessage[3], BIN);
+			Serial.println(m_rawMessage[2], BIN);*/
+			m_speed.tripMileage = ((float)(m_rawMessage[4] & 0x0F) * (2^16) + m_rawMessage[3] * (2^8) + m_rawMessage[2] )/ 100.0f;
 			break;
 	/*
 	 *  22  02  XX  XX  00  Total Mileage: XXXX/10 nautical miles
 	 */
 		case 0x22:
-			m_speed.totalMileage = m_speed.tripMileage = (m_rawMessage[3] * 256 + m_rawMessage[4])/ 10.0f;
+	/*		Serial.println("totalmileage");
+			Serial.println(m_rawMessage[3]);
+			Serial.println(m_rawMessage[2]);
+
+			Serial.println(m_rawMessage[5], BIN);
+			Serial.println(m_rawMessage[4], BIN);
+			Serial.println(m_rawMessage[3], BIN);
+			Serial.println(m_rawMessage[2], BIN);*/
+			m_speed.totalMileage = m_speed.tripMileage = ((float)(m_rawMessage[4] & 0x0F) * (2^16) + m_rawMessage[3] * (2^8) + m_rawMessage[2])/ 10.0f;
 			break;
 	/*
 	 *  23  Z1  XX  YY  Water temperature (ST50): XX deg Celsius, YY deg Fahrenheit
@@ -172,6 +198,12 @@ void Seatalk::parseMessage()
 	 */
 		case 0x23:
 			m_speed.waterTemp = m_rawMessage[2];
+			break;
+	/*
+	*	 24  02  00  00  XX  Display units for Mileage & Speed 
+                     XX: 00=nm/knots, 06=sm/mph, 86=km/kmh
+	*/
+		case 0x24:
 			break;
 
 	/*

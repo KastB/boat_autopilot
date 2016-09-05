@@ -108,6 +108,11 @@ void UI::exec(String cmd)
 		m_pid->setInactiv();
 		m_motor->gotoParking();
 	}
+	else if(cmd == "I")
+	{
+		m_pid->setInactiv();
+		m_motor->initialize();
+	}
 	else if(cmd == "S")
 	{
 		m_pid->setInactiv();
