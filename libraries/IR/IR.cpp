@@ -113,9 +113,9 @@ void IR::update()
 
 			if(m_lastKey != results.value && results.value != HOLD)
 			{
-				Serial.print(m_lastKey);
-				Serial.print("##");
-				Serial.println(results.value);
+				//Serial.print(m_lastKey);
+				//Serial.print("##");
+				//Serial.println(results.value);
 				switch(m_lastKey)
 				{
 					case LEFT:
@@ -154,7 +154,7 @@ String IR::getCommand()
 	{
 		String cmd = m_cmd;
 		m_cmd = "";
-		Serial.println(cmd);
+		//Serial.println(cmd);
 		return cmd;
 	}
 	else
