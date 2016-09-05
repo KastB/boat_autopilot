@@ -524,6 +524,7 @@ String IMU::debugHeader()
 void IMU::deleteCalibration()
 {
 	calLibErase(0);
+	initilizeCalibration();
 }
 void IMU::initilizeCalibration()
 {
