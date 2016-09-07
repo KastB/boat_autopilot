@@ -42,6 +42,7 @@ private:
 
 	float m_errorSum;
 	float m_lastError;
+	float m_lastFilteredYaw;
 	unsigned long m_lastTime;
 
 
@@ -55,7 +56,6 @@ private:
 	IMU *m_imu;
 	Motor *m_motor;
 	Seatalk *m_seatalk;
-
 
 	void normalize(float &error);
 

@@ -13,6 +13,13 @@ IMU::IMU(unsigned long interval)
 	q[0] = 1.0f;
 	eInt[0] = eInt[1] = eInt[2] = q[1] = q[2] = q[3] = 0.0f;
 
+	// filters out changes faster that 0.3 Hz.
+	float filterFrequency = 0.3;
+
+	// create a one pole (RC) lowpass filter
+	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );
+
+
 	Wire.begin();
 	// initialize MPU6050 device
 
@@ -20,7 +27,6 @@ IMU::IMU(unsigned long interval)
 
 
 	// Set up the accelerometer, gyro, and magnetometer for data output
-
 	mpu->setRate(7); // set gyro rate to 8 kHz/(1 * rate) shows 1 kHz, accelerometer ODR is fixed at 1 KHz
 
 	MagRateDivisor = 10; // 1/divisor of accelRate
@@ -66,6 +72,12 @@ IMU::IMU(unsigned long interval)
 IMU::~IMU() {
 	delete (mpu);
 }
+
+void IMU::setFilterFrequency(float freq)
+{
+	m_lowpassFilter->setFrequency(freq);
+}
+
 void IMU::update()
 {
 	if(mpu->getIntDataReadyStatus() == 1) // wait for data ready status register to update all data registers
@@ -369,10 +381,19 @@ void IMU::MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float g
 	q[2] = q3 * norm;
 	q[3] = q4 * norm;
 
+
+	updateRPY();
 }
 
+void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw)
+{
+	roll = m_roll;
+	pitch = m_pitch;
+	yaw = m_yaw;
+	filteredYaw = m_filteredYaw;
+}
 
-void IMU::getRPY(float &roll, float &pitch, float &yaw)
+void IMU::updateRPY()
 {
 	double quat[4];
 //	for(int i = 0; i < 4; i++)
@@ -401,15 +422,39 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw)
 	pitch = -asin(2.0f * (quat[1] * quat[3] - quat[0] * quat[2]));
 	roll  = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), quat[0] * quat[0] - quat[1] * quat[1] - quat[2] * quat[2] + quat[3] * quat[3]);*/
 
-	yaw   = atan2(2.0f * (quat[3] * quat[0] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[0] * quat[0] + quat[1] * quat[1]));
-	pitch = asin (2.0f * (quat[3] * quat[1] - quat[2] * quat[0]));
-	roll  = atan2(2.0f * (quat[3] * quat[2] + quat[0] * quat[1]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
+	m_yaw   = atan2(2.0f * (quat[3] * quat[0] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[0] * quat[0] + quat[1] * quat[1]));
+	m_pitch = asin (2.0f * (quat[3] * quat[1] - quat[2] * quat[0]));
+	m_roll  = atan2(2.0f * (quat[3] * quat[2] + quat[0] * quat[1]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
 
-	pitch *= 180.0f / PI;
-	yaw   *= 180.0f / PI ;
-	roll  *= 180.0f / PI;
+	m_pitch *= 180.0f / PI;
+	m_yaw   *= 180.0f / PI ;
+	m_roll  *= 180.0f / PI;
 
-	yaw += 180.0f;
+	m_yaw += 180.0f;
+
+	float y = m_yaw;
+	while( m_lowpassFilter->output() < y - 360.0f)
+	{
+		y -= 360.0f;
+	}
+	while( m_lowpassFilter->output() > y + 360.0f)
+	{
+		y += 360.0f;
+	}
+
+	m_lowpassFilter->input(y);
+
+	if(m_lowpassFilter->output() >= 360.0f)
+	{
+		m_lowpassFilter->setToNewValue(m_lowpassFilter->output() - 360.0f);
+	}
+	if(m_lowpassFilter->output() < 0.0f)
+	{
+		m_lowpassFilter->setToNewValue(m_lowpassFilter->output() + 360.0f);
+	}
+
+
+	m_filteredYaw = m_lowpassFilter->output();
 
 /*	pitch += 180.0f;
 	yaw += 180.0f;
@@ -417,10 +462,8 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw)
 }
 String IMU::debug()
 {
-
-
-	float roll, pitch, yaw;
-	getRPY(roll, pitch, yaw);
+	float roll, pitch, yaw, filteredYaw;
+	getRPY(roll, pitch, yaw, filteredYaw);
 	return String(yaw) +
 			"\t" +
 			pitch +
@@ -528,6 +571,15 @@ void IMU::deleteCalibration()
 }
 void IMU::initilizeCalibration()
 {
+	a1=a2=a3=g1=g2=g3=m1=m2=m3=0;
+	mcount = 0;
+	deltat = 0.0f;
+	lastUpdate=now=0;
+
+	ax = ay = az = gx = gy = gz = mx = my = mz = 0;
+	q[0] = 1.0f;
+	eInt[0] = eInt[1] = eInt[2] = q[1] = q[2] = q[3] = 0.0f;
+
 	m_calDat.magValid = false;
 	for (int i = 0; i < 3; i++)
 	{
@@ -567,7 +619,6 @@ void IMU::resetRotationRef()
 	m_calDat.rotRef[1] = 0;
 	m_calDat.rotRef[2] = 0;
 	m_calDat.rotRef[3] = 1;
-
 }
 
 void IMU::setCalibrationData()

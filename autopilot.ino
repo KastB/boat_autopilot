@@ -62,6 +62,4 @@ void setup()
 void loop()
 {
 	g_timer.checkAndRunUpdate();
-
-
 }

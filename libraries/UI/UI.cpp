@@ -136,6 +136,7 @@ void UI::exec(String cmd)
 				case 'D': m_pid->m_D = value;break;
 				case 'M': m_motor->gotoPos(value);break;
 				case 'R': setDebugDevisor(value);break;
+				case 'F': m_imu->setFilterFrequency(value);break;
 				default: break;
 			}
 		}

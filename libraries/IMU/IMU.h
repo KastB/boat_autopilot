@@ -47,7 +47,7 @@ THE SOFTWARE.
 #include "MPU6050.h"
 #include "CalLib.h"
 #include "TimersClass.h"
-
+#include "Filters.h"
 
 // global constants for 9 DoF fusion and AHRS (Attitude and Heading Reference System)
 #define GyroMeasError PI * (40.0f / 180.0f)       // gyroscope measurement error in rads/s (shown as 3 deg/s)
@@ -76,7 +76,9 @@ public:
 	void deleteCalibration();
 	void setCurrentRotationAsRef();
 	void resetRotationRef();
-	void getRPY(float &roll, float &pitch, float &yaw);
+	void setFilterFrequency(float freq);
+	void getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw);
+
 private:
 	// Declare device MPU6050 class
 	MPU6050 *mpu;
@@ -91,13 +93,14 @@ private:
 	float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 	float q[4];    // vector to hold quaternion
 	float eInt[3];       // vector to hold integral error for Mahony method
+	float m_roll, m_pitch, m_yaw, m_filteredYaw;
 
 	CALLIB_DATA m_calDat;
 	unsigned long m_lastCalStore;
 
 	void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
-
+	void updateRPY();
 
 	void initilizeCalibration();
 	void storeCalibration();
@@ -107,6 +110,9 @@ private:
 	float m_compassCalOffset[3];
 	float m_compassCalScale[3];
 	bool m_calibrationValid;
+
+
+	FilterOnePole *m_lowpassFilter;
 };
 
 #endif /* LIBRARIES_IMU_H_ */

@@ -3,6 +3,19 @@
  * Angles in DEGREE (not radians as usual)
  * Angles positive CLOCKWISE (not counterclockwise as usual)
  *  Created on: 25.08.2015
+ *
+ *
+ *
+ *  KpKrit = 60
+ *  TKrit = 19s
+ *
+ *  Kp = 0.6 * KpKrit					= 36.0
+ *  Ki = 0.6 * KpKrit * 2 / TKrit		= 3.79
+ *  Kd = 0.6 * KpKrit * 0.12 * TKrit	= 82.02
+ *
+ *  Kp = 27.0
+ *  Ki = 1.67
+ *
  */
 
 #include "PID.h"
@@ -10,9 +23,9 @@
 
 PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_interval = interval;
-	m_P = 4.0f;
-	m_I = 10.0f;
-	m_D = 0.5f;
+	m_P = 36.0f;
+	m_I = 3.79f;
+	m_D = 82.02f;
 
 	m_motor = motor;
 	m_imu = imu;
@@ -24,6 +37,7 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_lastTime = millis();
 	m_errorSum = 0.0f;
 	m_lastError = 0.0f;
+	m_lastFilteredYaw = 0.0f;
 
 	m_tackStartTime = 0;
 	m_tackMinTime = 1000;
@@ -47,9 +61,9 @@ void PID::setWind(float goal)
 
 void PID::setMag()
 {
-	float roll, pitch, yaw;
-	m_imu->getRPY(roll, pitch, yaw);
-	m_goal = yaw;
+	float roll, pitch, yaw, filteredYaw;
+	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
+	m_goal = filteredYaw;
 	m_goalType = MAGNET;
 	normalize(m_goal);
 }
@@ -88,20 +102,26 @@ void PID::update()
 	unsigned long currentTime = millis();
 	float error;
 	int position;
-	float roll, pitch, yaw;
-	m_imu->getRPY(roll, pitch, yaw);
+	float roll, pitch, yaw, filteredYaw;
+	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
 	if(m_goalType == MAGNET)
 		current = yaw;
 	else if(m_goalType == WIND)
 		current = m_seatalk->m_wind.apparentAngle;
 	else
+	{
+		m_lastError = 0.0;
+		m_lastTime = currentTime;
+		m_lastFilteredYaw = filteredYaw;
 		return;
+	}
+
 
 	error = m_goal - current;
 	normalize(error);
-	while (error > 360.0f)
+	while (error > 180.0f)
 	{
-		error -= 180.0f;
+		error -= 360.0f;
 	}
 	while (error <= -180.0f)
 	{
@@ -113,9 +133,11 @@ void PID::update()
 		float dt = (currentTime - m_lastTime);
 		dt = dt / 1000.0f;
 		float errorSum = m_errorSum + error * dt;
+
 		position = 	m_P * error +
-					m_D * (m_lastError - error) / dt +
-					m_I * errorSum;
+					m_D * (m_lastFilteredYaw - filteredYaw) / dt;
+		if(m_I != 0.0)
+				position += m_I * errorSum;
 		//set position
 		m_motor->gotoPos(position);
 
@@ -124,10 +146,15 @@ void PID::update()
 		{
 			m_errorSum = errorSum;
 		}
-		else
+		else if(m_I != 0.0)
 		{
 			m_errorSum = (float)m_motor->getCurrentPosition() / m_I;
 		}
+		else
+		{
+			errorSum = 0.0;
+		}
+		m_lastFilteredYaw = filteredYaw;
 	}
 	m_lastError = error;
 	m_lastTime = currentTime;
@@ -185,9 +212,9 @@ void PID::normalize(float &angle)
 }
 String PID::debug()
 {
-	return String(m_P) + "\t" + m_I + "\t" + m_D + "\t" + m_goalType + "\t" + m_goal + "\t" + m_lastError + "\t" + m_errorSum;
+	return String(m_P) + "\t" + m_I + "\t" + m_D + "\t" + m_goalType + "\t" + m_goal + "\t" + m_lastError + "\t" + m_errorSum + "\t" + m_lastFilteredYaw;
 }
 String PID::debugHeader()
 {
-	return String("m_P") + "\t" + "m_I" + "\t" + "m_D" + "\t" + "m_goalType" + "\t" + "m_goal" + "\t" + "m_lastError" + "\t" + "m_errorSum";
+	return String("m_P") + "\t" + "m_I" + "\t" + "m_D" + "\t" + "m_goalType" + "\t" + "m_goal" + "\t" + "m_lastError" + "\t" + "m_errorSum" + "\t" + "m_lastFilteredYaw";
 }
