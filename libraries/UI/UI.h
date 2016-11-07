@@ -8,7 +8,7 @@
 #define LIBRARIES_UI_UI_H_
 #include <PID.h>
 #include <Motor.h>
-//#include <Radio.h>
+#include <Radio.h>
 #include <IR.h>
 #include "TimersClass.h"
 #include <IMU.h>
@@ -17,7 +17,7 @@
 class UI : public TimerClass {
 public:
 
-	UI(unsigned long interval, IR* ir, Motor* motor, PID* pid, IMU* imu, KeypadWrapper *kpd, TimersClass *timer);
+	UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid, IMU* imu, KeypadWrapper *kpd, TimersClass *timer);
 	virtual ~UI();
 	void update();
 	String debug();
@@ -35,7 +35,8 @@ private:
 	int m_counter;
 
 
-	IR 		*m_ir;
+	IR 			*m_ir;
+	Radio		*m_radio;
 	Motor 		*m_motor;
 	PID 		*m_pid;
 	IMU			*m_imu;

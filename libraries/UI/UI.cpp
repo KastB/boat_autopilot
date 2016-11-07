@@ -10,7 +10,7 @@
 #include "RotaryEncoder.h"
 
 
-UI::UI(unsigned long interval, IR* ir, Motor* motor, PID* pid, IMU* imu, KeypadWrapper *kpd, TimersClass *timer) {
+UI::UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid, IMU* imu, KeypadWrapper *kpd, TimersClass *timer) {
 	m_interval = interval;
 	//m_uiState = NORMAL;
 	m_ir = ir;
@@ -19,29 +19,12 @@ UI::UI(unsigned long interval, IR* ir, Motor* motor, PID* pid, IMU* imu, KeypadW
 	m_imu = imu;
 	m_kpd = kpd;
 	m_timer = timer;
+	m_radio = radio;
 
 	m_cmdSerial = "";
 	m_cmdKeypad = "";
 	m_counter = 0;
 	m_debugDevisor = 20;
-
-	/*const byte ROWS = 4; //four rows
-	const byte COLS = 4; //four columns
-	char keys[ROWS][COLS] = {
-		{'1','2','3', 'A'},
-		{'4','5','6', 'B'},
-		{'7','8','9', 'C'},
-		{'*','0','#', 'D'}
-	};
-//	byte rowPins[ROWS] = {A0,A1,A2,A3}; //connect to the row pinouts of the kpd
-//	byte colPins[COLS] = {A4,A5,A6,A7}; //connect to the column pinouts of the kpd
-
-	byte rowPins[ROWS] = {53,51,49,47}; //connect to the row pinouts of the kpd
-	byte colPins[COLS] = {45,43,41,39}; //connect to the column pinouts of the kpd
-
-
-	m_kpd = new Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );*/
-
 }
 
 UI::~UI() {
@@ -65,11 +48,27 @@ void UI::update()
 		}
 	}
 
-	String irCmd = m_ir->getCommand();
-	if(irCmd != "")
+	if(m_ir != NULL)
 	{
-		exec(irCmd);
-		Serial.println(irCmd);
+		String irCmd = m_ir->getCommand();
+		if(irCmd != "")
+		{
+			exec(irCmd);
+			Serial.println(irCmd);
+		}
+	}
+
+	if(m_radio != NULL)
+	{
+		switch(m_radio->getLastKey())
+		{
+		case Radio::A: Serial.println("A");break;
+		case Radio::B: Serial.println("B");break;
+		case Radio::C: Serial.println("C");break;
+		case Radio::D: Serial.println("D");break;
+		default:break;
+		}
+
 	}
 
 	String kpdCmd = m_kpd->getCommand();

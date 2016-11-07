@@ -3,7 +3,7 @@
 #include <TimersClass.h>
 #include <UI.h>
 #include <RotaryEncoder.h>
-//#include <Radio.h>
+#include <Radio.h>
 
 #include <Motor.h>
 #include <PID.h>
@@ -15,8 +15,8 @@
 //Connection Handlers
 
 TimersClass 	g_timer;
-//Radio 			g_radio 		= 	Radio			(50, 0,10);
-IR				g_ir			=	IR				(50, 2);
+Radio 			g_radio 		= 	Radio			(50, 0,10);
+//IR				g_ir			=	IR				(50, 2);
 RotaryEncoder 	g_rotaryEncoder	=	RotaryEncoder	(10, 9,8);
 Motor 			g_motor			= 	Motor			(50, &g_rotaryEncoder);
 IMU				g_imu 			= 	IMU				(20);
@@ -24,7 +24,7 @@ Seatalk			g_seatalk		= 	Seatalk			(20);				//needs to be called with correct fre
 GPS				g_gps			=	GPS				(10);
 PID 			g_pid 			= 	PID				(500, &g_imu, & g_seatalk, &g_motor);
 KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25);
-UI 				g_ui 			= 	UI				(50, &g_ir, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer);
+UI 				g_ui 			= 	UI				(50, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer);
 
 
 
@@ -41,8 +41,8 @@ void setup()
 
 	//Timers
 	g_timer.addTimer(&g_rotaryEncoder);
-//	g_timer.addTimer(&g_radio);
-	g_timer.addTimer(&g_ir);
+	g_timer.addTimer(&g_radio);
+//	g_timer.addTimer(&g_ir);
 	g_timer.addTimer(&g_motor);
 	g_timer.addTimer(&g_pid);
 	g_timer.addTimer(&g_ui);
