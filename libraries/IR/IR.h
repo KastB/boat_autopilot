@@ -1,5 +1,5 @@
 /*
- * PID.h
+ * IR.h
  *
  *  Created on: 25.08.2015
  */
