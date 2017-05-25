@@ -16,9 +16,15 @@ public:
 	virtual ~TimerClass() = 0;
 	void checkAndRunUpdate()
 	{
-		if(millis() >= m_timestamp + m_interval)
+		if(millis() >= m_timestamp)
 		{
-			m_timestamp = millis();
+			//m_timestamp = millis();
+			m_timestamp = m_timestamp + m_interval;
+			if(millis() >= m_timestamp && m_warnCounter > m_warnReduction)
+			{
+				Serial.println("Running out of time!!!");
+				m_warnCounter = 0;
+			}
 			update();
 		}
 	}
@@ -28,7 +34,8 @@ public:
 	unsigned long m_interval;
 private:
 	unsigned long m_timestamp;
-
+	const unsigned int m_warnReduction = 100;
+	unsigned int m_warnCounter = 0;
 	friend class TimersClass;
 };
 

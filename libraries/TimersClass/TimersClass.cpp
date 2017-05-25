@@ -54,7 +54,7 @@ void TimersClass::addTimer(TimerClass* timer)
 	for(i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++);
 	if (i == MAXTIMERCLASSES)
 		return;
-	timer->m_timestamp = millis();
+	timer->m_timestamp = millis() + timer->m_interval;
 	if(m_timers[i] == NULL)
 		m_timers[i] = timer;
 }
