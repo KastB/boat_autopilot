@@ -75,8 +75,6 @@ void KeypadWrapper::update()
 				if(m_kpd->key[i].kstate == HOLD)
 				{
 					switch(m_kpd->key[i].kchar){
-						case '*': m_cmd = "D999999";return;
-						case '#': m_cmd = "I999999";return;
 						case 'C': m_cmd = "T";return;
 						case 'D': m_cmd = "GP";return;
 						default: break;
@@ -159,7 +157,7 @@ String KeypadWrapper::getCommand()
 	{
 		String cmd = m_cmd;
 		m_cmd = "";
-		Serial.println(cmd);
+	//	Serial.println(cmd);
 		return cmd;
 	}
 	else
