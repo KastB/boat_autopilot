@@ -285,6 +285,7 @@ void IMU::MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float
 	q[2] = q3 * norm;
 	q[3] = q4 * norm;
 
+	updateRPY();
 }
 
 
@@ -399,8 +400,8 @@ void IMU::updateRPY()
 //	for(int i = 0; i < 4; i++)
 	//	Serial.println(q[i]);
 
-	//for(int i = 0; i < 4; i++)
-	//	Serial.println(m_calDat.rotRef[i]);
+//	for(int i = 0; i < 4; i++)
+//		Serial.println(m_calDat.rotRef[i]);
 	quat[3] = q[3]*m_calDat.rotRef[3] - q[0]*m_calDat.rotRef[0] - q[1]*m_calDat.rotRef[1] - q[2]*m_calDat.rotRef[2];
 	quat[0] = q[3]*m_calDat.rotRef[0] + q[0]*m_calDat.rotRef[3] - q[1]*m_calDat.rotRef[2] + q[2]*m_calDat.rotRef[1];
 	quat[1] = q[3]*m_calDat.rotRef[1] + q[0]*m_calDat.rotRef[2] + q[1]*m_calDat.rotRef[3] - q[2]*m_calDat.rotRef[0];
@@ -456,9 +457,6 @@ void IMU::updateRPY()
 
 	m_filteredYaw = m_lowpassFilter->output();
 
-/*	pitch += 180.0f;
-	yaw += 180.0f;
-	roll += 180.0f; */
 }
 String IMU::debug()
 {
