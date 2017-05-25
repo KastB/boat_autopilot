@@ -202,9 +202,9 @@ void Motor::update()
 			if(m_targetPosition == m_rotaryEncoder->getCurrentPosition())
 			{
 				m_initMax = m_targetPosition;
-				Serial.print(m_initMax);
-				Serial.print("##");
-				Serial.println(m_initMin);
+		//		Serial.print(m_initMax);
+		//		Serial.print("##");
+		//		Serial.println(m_initMin);
 				m_rotaryEncoder->setCurrentPosition((m_initMax - m_initMin)/2);
 				m_initStatus = 5;
 			}
