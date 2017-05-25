@@ -80,6 +80,8 @@ public:
 	String debugHeader();
 	void update();
 
+	bool m_debug;
+
 	wind m_wind;
 	depth m_depth;
 	speed m_speed;

@@ -24,6 +24,8 @@ Seatalk::Seatalk(unsigned long interval) {
 	m_depth.metricUnits = false;
 	m_depth.shallowAlarm = false;
 	m_depth.unknown = false;
+
+	m_debug = false;
 }
 
 Seatalk::~Seatalk() {
@@ -61,34 +63,38 @@ void Seatalk::update()
 			{
 				if(expectedMsgLength > 15)
 				{
-					Serial.println("Message is corrupt");
 					expectedMsgLength = 0;
 				}
-				else if(expectedMessageLength(m_rawMessage[0]) == -1)
+				if (m_debug)
 				{
-					Serial.println("New Message Type received or Message corrupt");
+					if(expectedMsgLength > 15)
+					{
+						Serial.println("Message is corrupt");
+					}
+					else if(expectedMessageLength(m_rawMessage[0]) == -1)
+					{
+						Serial.println("New Message Type received or Message corrupt");
+					}
+					else if(expectedMessageLength(m_rawMessage[0]) != -1 )
+					{
+						Serial.println("Perhaps there is some coding in that message");
+					}
+					if(m_rawReadCount == 3)
+					{
+						Serial.print("Seatalk:0:");
+						Serial.println(m_rawMessage[0],HEX);
+						Serial.print("Seatalk:1:");
+						Serial.println(m_rawMessage[1],HEX);
+					}
+					Serial.print("Seatalk:");
+					Serial.print(m_rawReadCount-1);
+					Serial.print(":");
+					Serial.println(m_rawMessage[m_rawReadCount-1],HEX);
 				}
-				else if(expectedMessageLength(m_rawMessage[0]) != -1 )
-				{
-					Serial.println("Perhaps there is some coding in that message");
-				}
-				if(m_rawReadCount == 3)
-				{
-					Serial.print("Seatalk:0:");
-					Serial.println(m_rawMessage[0],HEX);
-					Serial.print("Seatalk:1:");
-					Serial.println(m_rawMessage[1],HEX);
-				}
-				Serial.print("Seatalk:");
-				Serial.print(m_rawReadCount-1);
-				Serial.print(":");
-				Serial.println(m_rawMessage[m_rawReadCount-1],HEX);
-
 			}
 
 			if(m_rawReadCount == expectedMsgLength || m_rawReadCount == 18) // all needed Data received => process message
 			{
-
 				m_rawReadCount = 0;
 			}
 		}
