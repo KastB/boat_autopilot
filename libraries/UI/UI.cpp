@@ -54,7 +54,7 @@ void UI::update()
 		if(irCmd != "")
 		{
 			exec(irCmd);
-			Serial.println(irCmd);
+	//		Serial.println(irCmd);
 		}
 	}
 
@@ -66,6 +66,15 @@ void UI::update()
 		case Radio::B: Serial.println("B");break;
 		case Radio::C: Serial.println("C");break;
 		case Radio::D: Serial.println("D");break;
+		/*evt:
+		 * a = I001
+		 * b = D001
+		 * ca = I010
+		 * cb = D010
+		 * ceba = GP
+		 * d = T
+		 */
+
 		default:break;
 		}
 
@@ -87,7 +96,7 @@ void UI::update()
 }
 void UI::exec(String cmd)
 {
-	Serial.println(cmd);
+//	Serial.println(cmd);
 	if(cmd == "?")
 		msg_help();
 	else if(cmd == "DELCAL")
@@ -178,16 +187,20 @@ void UI::setDebugDevisor(int div)
 
 void UI::msg_help()
 {
-	String msg =String("?: this help\n") +
-						"IR: delete IMU calibration\n" +
-						"T: tack\n" +
-						"GP: go parking\n" +
-						"M???: set magnet goal\n" +
-						"W???: set Wind goal\n" +
-						"I???: increase\n" +
-						"D???: decrease\n" +
-						"R[A-D]: Program Radio-key[A-D]\n" +
-						"P[P,I,D,M,R][-DBL_MAX;DBL_MAX]: set Parameter controller (PID-Control-Parameters, Motorposition, debug Rate inverse";
+	String msg =String("?: this help\n\r") +
+						"DELCAL: delete IMU calibration\n\r" +
+						"SETROT: set current rotation as reference\n\r" +
+						"RESETROT: reset current rotation reference\n\r" +
+						"T: tack\n\r" +
+						"I: initialize\n\r" +
+						"S: stop\n\r" +
+						"GP: go parking\n\r" +
+						"M???: set magnet goal\n\r" +
+						"W???: set Wind goal\n\r" +
+						"I???: increase\n\r" +
+						"D???: decrease\n\r" +
+						"R[A-D]: Program Radio-key[A-D]\n\r" +
+						"P[P,I,D,M,R,F][-DBL_MAX;DBL_MAX]: set Parameter controller (PID-Control-Parameters, Motorposition, debug Rate inverse\n\r";
 	Serial.println(msg);
 //Serial1.println(msg);
 }
