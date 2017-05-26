@@ -13,8 +13,8 @@ IMU::IMU(unsigned long interval)
 	q[0] = 1.0f;
 	eInt[0] = eInt[1] = eInt[2] = q[1] = q[2] = q[3] = 0.0f;
 
-	// filters out changes faster that 0.3 Hz.
-	float filterFrequency = 0.3;
+	// filters out changes faster that 0.03 Hz.
+	float filterFrequency = 0.03;
 
 	// create a one pole (RC) lowpass filter
 	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );
@@ -453,7 +453,7 @@ void IMU::updateRPY()
 	{
 		m_lowpassFilter->setToNewValue(m_lowpassFilter->output() + 360.0f);
 	}
-
+	//TODO: set start value for lowpassfilter (once on startup instead of 0)
 
 	m_filteredYaw = m_lowpassFilter->output();
 
