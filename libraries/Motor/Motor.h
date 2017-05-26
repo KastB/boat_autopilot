@@ -23,6 +23,7 @@ public:
 	void stop();
 	void gotoParking();
 	void initialize();
+	void reinitialize();
 
 	bool getBlocked();
 	int getCurrentPosition();

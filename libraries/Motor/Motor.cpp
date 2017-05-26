@@ -65,6 +65,11 @@ void Motor::initialize()
 	}
 }
 
+void Motor::reinitialize()
+{
+	m_initStatus = 1;
+}
+
 void Motor::gotoPos(int pos)
 {
 	m_targetPosition = pos;
