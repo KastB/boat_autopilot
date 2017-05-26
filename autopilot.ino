@@ -17,7 +17,7 @@
 TimersClass 	g_timer;
 Radio 			g_radio 		= 	Radio			(50, 0,10);
 //IR				g_ir			=	IR				(50, 2);
-RotaryEncoder 	g_rotaryEncoder	=	RotaryEncoder	(10, 9,8);
+RotaryEncoder 	g_rotaryEncoder	=	RotaryEncoder	(2, 9,8);
 Motor 			g_motor			= 	Motor			(50, &g_rotaryEncoder);
 IMU				g_imu 			= 	IMU				(20);
 Seatalk			g_seatalk		= 	Seatalk			(20);				//needs to be called with correct frequency in order to detect corrupt messages without 9-bit mode (without using command bit)
