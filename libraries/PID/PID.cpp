@@ -23,9 +23,13 @@
 
 PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_interval = interval;
-	m_P = 36.0f;
+/*	m_P = 36.0f;
 	m_I = 3.79f;
 	m_D = 82.02f;
+*/
+	m_P = 5.0f;
+	m_I = 0.5f;
+	m_D = 10.0f;
 
 	m_motor = motor;
 	m_imu = imu;
@@ -41,37 +45,45 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 
 	m_tackStartTime = 0;
 	m_tackMinTime = 1000;
+
+	float filterFrequency = 1.0;
+
+	// create a one pole (RC) lowpass filter
+	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );
 }
 
 PID::~PID() {
 }
 
+void PID::setFilterFrequency(float freq)
+{
+	m_lowpassFilter->setFrequency(freq);
+}
+
 void PID::setWind()
 {
-	m_goal = m_seatalk->m_wind.apparentAngle;
-	m_goalType = WIND;
-	normalize(m_goal);
+	setWind(m_seatalk->m_wind.apparentAngle);
 }
 void PID::setWind(float goal)
 {
 	m_goal = goal;
 	m_goalType = WIND;
 	normalize(m_goal);
+	m_lowpassFilter->setToNewValue(m_motor->getCurrentPosition());
 }
 
 void PID::setMag()
 {
 	float roll, pitch, yaw, filteredYaw;
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
-	m_goal = filteredYaw;
-	m_goalType = MAGNET;
-	normalize(m_goal);
+	setMag(filteredYaw);
 }
 void PID::setMag(float goal)
 {
 	m_goal = goal;
 	m_goalType = MAGNET;
 	normalize(m_goal);
+	m_lowpassFilter->setToNewValue(m_motor->getCurrentPosition());
 }
 
 void PID::tack()
@@ -139,10 +151,11 @@ void PID::update()
 		if(m_I != 0.0)
 				position += m_I * errorSum;
 		//set position
-		m_motor->gotoPos(position);
+		m_lowpassFilter->input(position);
+		m_motor->gotoPos(m_lowpassFilter->output());
 
 		//don't increase integral over physical bounds of the hardware
-		if(!m_motor->getBlocked())
+		if(!m_motor->getBlocked() && m_I != 0.0)
 		{
 			m_errorSum = errorSum;
 		}

@@ -33,6 +33,8 @@ public:
 	void setInactiv();
 	void increase(int value);
 	void decrease(int value);
+
+	void setFilterFrequency(float freq);
 private:
 	enum goalType{INACTIVE, WIND, MAGNET};
 	//controller
@@ -44,6 +46,8 @@ private:
 	float m_lastError;
 	float m_lastFilteredYaw;
 	unsigned long m_lastTime;
+
+	FilterOnePole *m_lowpassFilter;
 
 
 	unsigned long m_tackStartTime;
