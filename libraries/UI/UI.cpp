@@ -121,6 +121,11 @@ void UI::exec(String cmd)
 		m_pid->setInactiv();
 		m_motor->initialize();
 	}
+	else if(cmd == "RI")
+	{
+		m_pid->setInactiv();
+		m_motor->reinitialize();
+	}
 	else if(cmd == "S")
 	{
 		m_pid->setInactiv();
@@ -145,6 +150,7 @@ void UI::exec(String cmd)
 				case 'M': m_motor->gotoPos(value);break;
 				case 'R': setDebugDevisor(value);break;
 				case 'F': m_imu->setFilterFrequency(value);break;
+				case 'C': m_pid->setFilterFrequency(value);break;
 				default: break;
 			}
 		}
@@ -193,6 +199,7 @@ void UI::msg_help()
 						"RESETROT: reset current rotation reference\n\r" +
 						"T: tack\n\r" +
 						"I: initialize\n\r" +
+						"RI: reinitialize\n\r" +
 						"S: stop\n\r" +
 						"GP: go parking\n\r" +
 						"M???: set magnet goal\n\r" +
@@ -200,7 +207,7 @@ void UI::msg_help()
 						"I???: increase\n\r" +
 						"D???: decrease\n\r" +
 						"R[A-D]: Program Radio-key[A-D]\n\r" +
-						"P[P,I,D,M,R,F][-DBL_MAX;DBL_MAX]: set Parameter controller (PID-Control-Parameters, Motorposition, debug Rate inverse\n\r";
+						"P[P,I,D,M,R,F,C][-DBL_MAX;DBL_MAX]: set Parameter controller (PID-Control-Parameters, Motorposition, debug Rate inverse,lowpassFreq imu, pid\n\r";
 	Serial.println(msg);
 //Serial1.println(msg);
 }
