@@ -14,7 +14,7 @@ IMU::IMU(unsigned long interval)
 	eInt[0] = eInt[1] = eInt[2] = q[1] = q[2] = q[3] = 0.0f;
 
 	// filters out changes faster that 0.03 Hz.
-	float filterFrequency = 0.03;
+	float filterFrequency = 0.1;
 
 	// create a one pole (RC) lowpass filter
 	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );

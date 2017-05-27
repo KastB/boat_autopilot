@@ -27,9 +27,9 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_I = 3.79f;
 	m_D = 82.02f;
 */
-	m_P = 5.0f;
+	m_P = 8.0f;
 	m_I = 0.5f;
-	m_D = 10.0f;
+	m_D = 200.0f;
 
 	m_motor = motor;
 	m_imu = imu;
