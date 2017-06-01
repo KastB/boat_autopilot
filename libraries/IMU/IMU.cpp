@@ -18,6 +18,7 @@ IMU::IMU(unsigned long interval)
 
 	// create a one pole (RC) lowpass filter
 	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );
+	m_lowpassFilter->setToNewValue(-1.0);
 
 
 	Wire.begin();
@@ -434,11 +435,19 @@ void IMU::updateRPY()
 	m_yaw += 180.0f;
 
 	float y = m_yaw;
-	while( m_lowpassFilter->output() < y - 360.0f)
+
+	//initialization
+	if (m_lowpassFilter->output() < 0.0)
+	{
+		m_lowpassFilter->setToNewValue(y);
+		return;
+	}
+
+	while( m_lowpassFilter->output() < y - 180.0f)
 	{
 		y -= 360.0f;
 	}
-	while( m_lowpassFilter->output() > y + 360.0f)
+	while( m_lowpassFilter->output() > y + 180.0f)
 	{
 		y += 360.0f;
 	}
@@ -453,7 +462,6 @@ void IMU::updateRPY()
 	{
 		m_lowpassFilter->setToNewValue(m_lowpassFilter->output() + 360.0f);
 	}
-	//TODO: set start value for lowpassfilter (once on startup instead of 0)
 
 	m_filteredYaw = m_lowpassFilter->output();
 
