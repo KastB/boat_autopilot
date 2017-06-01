@@ -144,15 +144,20 @@ void PID::update()
 	{
 		float dt = (currentTime - m_lastTime);
 		dt = dt / 1000.0f;
-		//don't increase integral over physical bounds of the hardware (anti windup)
-		if(!m_motor->getBlocked())
-		{
-			m_errorSum += error * dt;
-		}
+		m_errorSum += error * dt;
 
 		position = 	m_P * error +
 					m_D * (m_lastFilteredYaw - filteredYaw) / dt +
 					m_I * m_errorSum;
+
+		//don't increase integral over physical bounds of the hardware (anti windup)
+		if(!m_motor->getBlocked())
+		{
+			if (abs(m_motor->getCurrentPosition() < abs(position)))
+			{
+				m_errorSum += (m_motor->getCurrentPosition() - position) / m_I;
+			}
+		}
 		//set position
 		m_lowpassFilter->input(position);
 		m_motor->gotoPos(m_lowpassFilter->output());
