@@ -145,7 +145,7 @@ void UI::exec(String cmd)
 			switch (cmd.charAt(1))
 			{
 				case 'P': m_pid->m_P = value;break;
-				case 'I': m_pid->m_errorSum = m_pid->m_errorSum / m_pid->m_I * value;m_pid->m_I = value;break;
+				case 'I': m_pid->m_errorSum = 0.0;m_pid->m_I = value;break;
 				case 'D': m_pid->m_D = value;break;
 				case 'M': m_motor->gotoPos(value);break;
 				case 'R': setDebugDevisor(value);break;
