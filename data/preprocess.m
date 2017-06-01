@@ -1,4 +1,4 @@
-A = importdata('~/src/autopilot_git/data.csv');
+A = importdata('~/src/autopilot_git/data/data.csv');
 indexYaw = 20;
 B = A
 for n = 2:size(A.data,1)
