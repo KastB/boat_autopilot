@@ -47,6 +47,9 @@ private:
 	float m_lastFilteredYaw;
 	unsigned long m_lastTime;
 
+	unsigned long m_iNoUpdateDelay;
+	unsigned long m_InoUpdate;
+
 	FilterOnePole *m_lowpassFilter;
 
 
