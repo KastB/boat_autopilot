@@ -23,10 +23,7 @@
 
 PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_interval = interval;
-/*	m_P = 36.0f;
-	m_I = 3.79f;
-	m_D = 82.02f;
-*/
+
 	m_P = 4.0f;
 	m_I = 0.1f;
 	m_D = 4.0f;
@@ -115,7 +112,6 @@ void PID::update()
 		m_tackStartTime = millis();
 	}
 
-	float current = 0.0;
 	float p = m_P;
 	unsigned long currentTime = millis();
 	float error;
@@ -124,13 +120,11 @@ void PID::update()
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
 	if(m_goalType == MAGNET)
 	{
-		current = yaw;
-		error = m_goal - current;
+		error = m_goal - yaw;
 	}
-	else if(m_goalType == WIND)
+	else if(m_goalType == WIND) //TODO: add some filtering, debug strange jumps on rudder
 	{
-		current = m_seatalk->m_wind.apparentAngle;
-		error = current - m_goal;
+		error = m_seatalk->m_wind.apparentAngle - m_goal;
 	}
 	else
 	{
@@ -140,6 +134,8 @@ void PID::update()
 		return;
 	}
 
+	// TODO: remove magic numbers
+	// TODO: slope instead of jump
 	if( fabs(error) < 10.0f )
 		p /= 2.0f;
 
@@ -148,44 +144,22 @@ void PID::update()
 	{
 		error -= 360.0f;
 	}
-	while (error <= -180.0f)
-	{
-		error += 360.0f;
-	}
 
 	if( currentTime > m_lastTime) //overflow handling
 	{
 		float dt = (currentTime - m_lastTime);
 		dt = dt / 1000.0f;
 
-
-
-		float v = m_seatalk->m_speed.speed;
-		v = max(v, 1.0);
 		float rotVel = (m_lastFilteredYaw - filteredYaw);
-		while(rotVel > 180.0f)
-		{
+		if(rotVel > 180.0f)
 			rotVel -= 360.0f;
-		}
-		while(rotVel < -180.0f)
-		{
+		if(rotVel < -180.0f)
 			rotVel += 360.0f;
-		}
+
 		rotVel /= dt;
-		/*
-		if(m_InoUpdate < currentTime) // dont integrate during swing-in	unless
-		{
-			m_errorSum += error * dt;
-		}
-		else
-		{
-			if(fabs(error) < 10.0) 	// error is small
-			{
-				m_errorSum += error * dt;
-			}
-		}*/
 
-
+		// TODO: remove magic numbers
+		// TODO: find nicer solution for I - problem
 		if(fabs(rotVel) > 1.0f)
 		{
 			float tmp = m_errorSum + error * dt;
@@ -201,21 +175,10 @@ void PID::update()
 			m_errorSum = 0.0;
 
 		position = 	p * error +
-							//Faster turns should be more damped => quadratic term
-							m_D *  rotVel * fabs(rotVel)+
-							m_I * m_errorSum;
+					//Faster turns should be more damped => quadratic term
+					m_D *  rotVel * fabs(rotVel)+
+					m_I * m_errorSum;
 
-		/*
-		 * p: 2 d:8 i: 0.2
-		position = 	m_P * error +
-					m_D * (m_lastFilteredYaw - filteredYaw) / dt +
-					m_I * m_errorSum; */
-/*
-		position = 	(m_P * error +
-					m_D * pow((m_lastFilteredYaw - filteredYaw), 2) / dt) /
-						  pow(v,2)	 * sin(fabs(error) / 90.0f * PI)+
-								m_I * m_errorSum;
-*/
 		//don't increase integral over physical bounds of the hardware (anti windup)
 		if(m_motor->getBlocked())
 		{
