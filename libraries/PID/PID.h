@@ -39,16 +39,20 @@ private:
 	enum goalType{INACTIVE, WIND, MAGNET};
 	//controller
 	float m_P;
+	float m_P2;
 	float m_I;
 	float m_D;
+
+	float m_settled;
 
 	float m_errorSum;
 	float m_lastError;
 	float m_lastFilteredYaw;
 	unsigned long m_lastTime;
 
-	unsigned long m_iNoUpdateDelay;
-	unsigned long m_InoUpdate;
+	unsigned long m_iNoUpdateDelay;		// delay after goal change before I is updated again
+	unsigned long m_InoUpdate;			// no update of I till before this time
+	float m_rotVelDyn;					// no update of I when boat rotates faster than this speed (°/s)
 
 	FilterOnePole *m_lowpassFilter;
 
@@ -63,6 +67,8 @@ private:
 	IMU *m_imu;
 	Motor *m_motor;
 	Seatalk *m_seatalk;
+
+
 
 	void normalize(float &error);
 

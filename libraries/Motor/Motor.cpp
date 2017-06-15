@@ -7,6 +7,8 @@
 #include "Motor.h"
 #include "Arduino.h"
 
+//TODO: add watchdog, that stops motor if no movement is detected despite movement command is active
+
 Motor::Motor(unsigned long interval, RotaryEncoder* rotary_encoder, int ina, int inb, int pwm, int diaga, int diagb, int smoothing) {
 	m_interval = interval;
 	m_currentDirection = STOP;
@@ -120,7 +122,7 @@ void Motor::motor_stop()
 
 void Motor::controlMotor(direction dir, int speed, bool overwrite)
 {
-	if(	abs(m_currentDirection - dir) > (unsigned int) 1 ||							// stop when switching from forward to backward
+	if(	abs(m_currentDirection - dir) > (unsigned int) 1 ||				// stop when switching from forward to backward
 		(m_MSStopped > 0 && millis() < m_minStopMS + m_MSStopped ) ||	// minimal stop criterium not fulfilled
 		dir == STOP)
 	{

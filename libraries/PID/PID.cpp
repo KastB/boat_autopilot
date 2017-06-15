@@ -21,12 +21,18 @@
 #include "PID.h"
 #include "Arduino.h"
 
+/* TODO: find nicer solution for I - problems (I affects dynamic PID performance negatively,
+		but needs to be rather big when under sail
+*/
+
 PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_interval = interval;
 
-	m_P = 4.0f;
-	m_I = 0.1f;
-	m_D = 4.0f;
+	m_P  = 	4.0f;
+	m_P2 = 	2.0f;
+	m_I  = 	0.2f;
+	m_D  = 	3.0f;
+	m_settled = 5.0f;
 
 	m_motor = motor;
 	m_imu = imu;
@@ -45,6 +51,7 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 
 	m_iNoUpdateDelay = 5000;
 	m_InoUpdate = 0;
+	m_rotVelDyn = 1.0f;
 
 	float filterFrequency = 1.0;
 
@@ -112,7 +119,7 @@ void PID::update()
 		m_tackStartTime = millis();
 	}
 
-	float p = m_P;
+	float p;
 	unsigned long currentTime = millis();
 	float error;
 	int position;
@@ -134,10 +141,15 @@ void PID::update()
 		return;
 	}
 
-	// TODO: remove magic numbers
-	// TODO: slope instead of jump
-	if( fabs(error) < 10.0f )
-		p /= 2.0f;
+
+	if( fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
+		p = m_P2;
+	if (fabs(error) < 2.0f * m_settled)	// larger P value for unsettled system => faster response
+		p = m_P;
+	else								// smooth transition between settled and unsettled system
+	{
+		p = m_P2 + (m_P - m_P2) / m_settled * (fabs(error)-m_settled);
+	}
 
 	normalize(error);
 	while (error > 180.0f)
@@ -158,17 +170,18 @@ void PID::update()
 
 		rotVel /= dt;
 
-		// TODO: remove magic numbers
-		// TODO: find nicer solution for I - problem
-		if(fabs(rotVel) > 1.0f)
+		if(currentTime > m_InoUpdate)
 		{
-			float tmp = m_errorSum + error * dt;
-			if(fabs(tmp) < fabs(m_errorSum))
-				m_errorSum = tmp;
-		}
-		else
-		{
-			m_errorSum += error * dt;
+			if(fabs(rotVel) > m_rotVelDyn)
+			{
+				float tmp = m_errorSum + error * dt;
+				if(fabs(tmp) < fabs(m_errorSum))
+					m_errorSum = tmp;
+			}
+			else
+			{
+				m_errorSum += error * dt;
+			}
 		}
 
 		if(m_errorSum != m_errorSum)
