@@ -54,8 +54,7 @@ private:
 	unsigned long m_InoUpdate;			// no update of I till before this time
 	float m_rotVelDyn;					// no update of I when boat rotates faster than this speed (°/s)
 
-	FilterOnePole *m_lowpassFilter;
-
+	FilterOnePole *m_lowpassOutput;
 
 	unsigned long m_tackStartTime;
 	unsigned long m_tackMinTime;	/** minimal time between two tacks*/

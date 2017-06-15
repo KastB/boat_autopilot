@@ -53,10 +53,8 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_InoUpdate = 0;
 	m_rotVelDyn = 1.0f;
 
-	float filterFrequency = 1.0;
-
 	// create a one pole (RC) lowpass filter
-	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );
+	m_lowpassOutput = new FilterOnePole ( LOWPASS, 1.0 );
 }
 
 PID::~PID() {
@@ -64,7 +62,7 @@ PID::~PID() {
 
 void PID::setFilterFrequency(float freq)
 {
-	m_lowpassFilter->setFrequency(freq);
+	m_lowpassOutput->setFrequency(freq);
 }
 
 void PID::setWind()
@@ -76,7 +74,7 @@ void PID::setWind(float goal)
 	m_goal = goal;
 	m_goalType = WIND;
 	normalize(m_goal);
-	m_lowpassFilter->setToNewValue(m_motor->getCurrentPosition());
+	m_lowpassOutput->setToNewValue(m_motor->getCurrentPosition());
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
@@ -91,7 +89,7 @@ void PID::setMag(float goal)
 	m_goal = goal;
 	m_goalType = MAGNET;
 	normalize(m_goal);
-	m_lowpassFilter->setToNewValue(m_motor->getCurrentPosition());
+	m_lowpassOutput->setToNewValue(m_motor->getCurrentPosition());
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
@@ -106,7 +104,7 @@ void PID::tack()
 		}
 		else
 		{
-			m_goal += m_seatalk->m_wind.apparentAngle * 2.0f;
+			m_goal += m_seatalk->m_wind.apparentAngleFiltered->output() * 2.0f;
 		}
 		normalize(m_goal);
 	}
@@ -129,7 +127,7 @@ void PID::update()
 	{
 		error = m_goal - yaw;
 	}
-	else if(m_goalType == WIND) //TODO: add some filtering, debug strange jumps on rudder
+	else if(m_goalType == WIND)
 	{
 		error = m_seatalk->m_wind.apparentAngle - m_goal;
 	}
@@ -201,8 +199,8 @@ void PID::update()
 			}
 		}
 		//set position
-		m_lowpassFilter->input(position);
-		m_motor->gotoPos(m_lowpassFilter->output());
+		m_lowpassOutput->input(position);
+		m_motor->gotoPos(m_lowpassOutput->output());
 		m_lastFilteredYaw = filteredYaw;
 	}
 	m_lastError = error;

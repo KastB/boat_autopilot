@@ -149,6 +149,7 @@ void Seatalk::parseMessage()
 	*/
 		case 0x10:
 			m_wind.apparentAngle = ((float)m_rawMessage[2] * 256 + m_rawMessage[3]) / 2.0;
+			m_wind.apparentAngleFiltered->input(m_wind.apparentAngle);
 			break;
 	/*
 		11  01  XX  0Y  Apparent Wind Speed: (XX & 0x7F) + Y/10 Knots

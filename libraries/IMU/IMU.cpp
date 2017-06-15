@@ -17,9 +17,7 @@ IMU::IMU(unsigned long interval)
 	float filterFrequency = 0.03;
 
 	// create a one pole (RC) lowpass filter
-	m_lowpassFilter = new FilterOnePole ( LOWPASS, filterFrequency );
-	m_lowpassFilter->setToNewValue(-1.0);
-
+	m_lowpassFilter = new FilterOrientation ( LOWPASS, filterFrequency );
 
 	Wire.begin();
 	// initialize MPU6050 device
@@ -436,35 +434,7 @@ void IMU::updateRPY()
 
 	float y = m_yaw;
 
-	//initialization
-	if (m_lowpassFilter->output() < 0.0)
-	{
-		m_lowpassFilter->setToNewValue(y);
-		return;
-	}
-
-	while( m_lowpassFilter->output() < y - 180.0f)
-	{
-		y -= 360.0f;
-	}
-	while( m_lowpassFilter->output() > y + 180.0f)
-	{
-		y += 360.0f;
-	}
-
-	m_lowpassFilter->input(y);
-
-	while(m_lowpassFilter->output() >= 360.0f)
-	{
-		m_lowpassFilter->setToNewValue(m_lowpassFilter->output() - 360.0f);
-	}
-	while(m_lowpassFilter->output() < 0.0f)
-	{
-		m_lowpassFilter->setToNewValue(m_lowpassFilter->output() + 360.0f);
-	}
-
-	m_filteredYaw = m_lowpassFilter->output();
-
+	m_filteredYaw = m_lowpassFilter->input(y);
 }
 String IMU::debug()
 {

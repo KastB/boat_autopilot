@@ -47,8 +47,7 @@
 #ifndef LIBRARIES_SEATALK_H_
 #define LIBRARIES_SEATALK_H_
 #include "TimersClass.h"
-
-
+#include "FilterOrientation.h"
 
 class Seatalk : public TimerClass{
 public:
@@ -66,6 +65,19 @@ public:
 		float apparentSpeed;	//Knots
 		bool displayInKnots;
 		bool displayInMpS;
+		FilterOrientation *apparentAngleFiltered;
+		wind()
+		{
+			apparentAngle = 0.0f;
+			apparentSpeed = 0.0f;
+			displayInKnots = true;
+			displayInMpS = false;
+			apparentAngleFiltered = new FilterOrientation(LOWPASS, 0.03f);
+		}
+		~wind()
+		{
+			delete (apparentAngleFiltered);
+		}
 	};
 	struct speed{
 		float speed;

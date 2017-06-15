@@ -47,7 +47,7 @@ THE SOFTWARE.
 #include "MPU6050.h"
 #include "CalLib.h"
 #include "TimersClass.h"
-#include "Filters.h"
+#include "FilterOrientation.h"
 
 // global constants for 9 DoF fusion and AHRS (Attitude and Heading Reference System)
 #define GyroMeasError PI * (40.0f / 180.0f)       // gyroscope measurement error in rads/s (shown as 3 deg/s)
@@ -112,7 +112,7 @@ private:
 	bool m_calibrationValid;
 
 
-	FilterOnePole *m_lowpassFilter;
+	FilterOrientation *m_lowpassFilter;
 };
 
 #endif /* LIBRARIES_IMU_H_ */
