@@ -12,11 +12,6 @@ Seatalk::Seatalk(unsigned long interval) {
 
 	m_rawReadCount = 0;
 
-	m_wind.apparentAngle = 0;
-	m_wind.apparentSpeed = 0;
-	m_wind.displayInKnots = true;
-	m_wind.displayInMpS = false;
-
 	m_depth.anchorAlarm = false;
 	m_depth.deepAlarm = false;
 	m_depth.defective = false;

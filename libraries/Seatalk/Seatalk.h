@@ -72,7 +72,7 @@ public:
 			apparentSpeed = 0.0f;
 			displayInKnots = true;
 			displayInMpS = false;
-			apparentAngleFiltered = new FilterOrientation(LOWPASS, 0.03f);
+			apparentAngleFiltered = new FilterOrientation(LOWPASS, 1.0f);
 		}
 		~wind()
 		{
