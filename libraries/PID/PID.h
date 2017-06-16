@@ -67,8 +67,6 @@ private:
 	Motor *m_motor;
 	Seatalk *m_seatalk;
 
-
-
 	void normalize(float &error);
 
 	friend class UI;

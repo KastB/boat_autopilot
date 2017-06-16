@@ -142,7 +142,7 @@ void PID::update()
 
 	if( fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
 		p = m_P2;
-	if (fabs(error) < 2.0f * m_settled)	// larger P value for unsettled system => faster response
+	else if (fabs(error) < 2.0f * m_settled)	// larger P value for unsettled system => faster response
 		p = m_P;
 	else								// smooth transition between settled and unsettled system
 	{
