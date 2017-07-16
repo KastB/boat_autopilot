@@ -49,7 +49,7 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_tackStartTime = 0;
 	m_tackMinTime = 1000;
 
-	m_iNoUpdateDelay = 5000;
+	m_iNoUpdateDelay = 7000;
 	m_InoUpdate = 0;
 	m_rotVelDyn = 1.0f;
 
@@ -108,6 +108,7 @@ void PID::tack()
 		}
 		normalize(m_goal);
 	}
+	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
 void PID::update()
@@ -170,7 +171,7 @@ void PID::update()
 
 		if(currentTime > m_InoUpdate)
 		{
-			if(fabs(rotVel) > m_rotVelDyn)
+			if(fabs(rotVel) > m_rotVelDyn || m_motor->getBlocked())
 			{
 				float tmp = m_errorSum + error * dt;
 				if(fabs(tmp) < fabs(m_errorSum))
@@ -190,14 +191,6 @@ void PID::update()
 					m_D *  rotVel * fabs(rotVel)+
 					m_I * m_errorSum;
 
-		//don't increase integral over physical bounds of the hardware (anti windup)
-		if(m_motor->getBlocked())
-		{
-			if (abs(m_motor->getCurrentPosition() < abs(position)))
-			{
-				m_errorSum += (m_motor->getCurrentPosition() - position) / m_I;
-			}
-		}
 		//set position
 		m_lowpassOutput->input(position);
 		m_motor->gotoPos(m_lowpassOutput->output());
@@ -232,6 +225,7 @@ void PID::increase(int value)
 	{
 		m_goal += value;
 	}
+	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 void PID::decrease(int value)
 {
@@ -243,6 +237,7 @@ void PID::decrease(int value)
 	{
 		m_goal -= value;
 	}
+	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
 void PID::normalize(float &angle)
