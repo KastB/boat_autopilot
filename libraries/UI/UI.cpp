@@ -135,6 +135,14 @@ void UI::exec(String cmd)
 	{
 		m_motor->stop();
 	}
+	else if(cmd == "M")
+	{
+		m_pid->setMag();
+	}
+	else if(cmd == "W")
+	{
+		m_pid->setWind();
+	}
 	else if(cmd.length() > 1)
 	{
 		if(cmd.charAt(0) == 'P') //Parameter
@@ -214,10 +222,10 @@ void UI::msg_help()
 
 String UI::debug()
 {
-	return "";
+	return "-";
 }
 
 String UI::debugHeader()
 {
-	return "";
+	return "UI";
 }
