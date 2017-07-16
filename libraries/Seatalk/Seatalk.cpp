@@ -153,7 +153,7 @@ void Seatalk::parseMessage()
 						 Corresponding NMEA sentence: MWV
 	 */
 		case 0x11:
-			m_wind.apparentSpeed = ((float)(m_rawMessage[2] & 0x7F) + (m_rawMessage[3] & 0x0F)) / 10.0;
+			m_wind.apparentSpeed = ((float)(m_rawMessage[2] & 0x7F)) + (m_rawMessage[3] & 0x0F) / 10.0;
 			break;
 	/*
 		 20  01  XX  XX  Speed through water: XXXX/10 Knots
