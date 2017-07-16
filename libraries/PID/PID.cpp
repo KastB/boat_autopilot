@@ -225,6 +225,7 @@ void PID::increase(int value)
 	{
 		m_goal += value;
 	}
+	normalize(m_goal);
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 void PID::decrease(int value)
@@ -237,6 +238,7 @@ void PID::decrease(int value)
 	{
 		m_goal -= value;
 	}
+	normalize(m_goal);
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
