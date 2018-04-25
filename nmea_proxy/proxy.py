@@ -6,22 +6,34 @@ Description
 @note:  All rights reserved.
 """
 
-import serial, pynmea2, time, math
+import serial, pynmea2, time, math, socket
 
 SERIALPORTIN = "/dev/ttyS22"
 BAUDRATEIN = 19200
-SERIALPORTOUT = "/dev/ttyS20"
-BAUDRATEOUT= 4800
 TEST = True
 
 HEADER = "Millis,m_currentPosition,m_pressedButtonDebug,m_bytesToSent,CurrentPosition,CurrentDirection,TargetPosition,MSStopped,startButton,stopButton,parkingButton,m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_lastFilteredYaw,yaw,filteredYaw,pitch,roll,freq,magMin[0],magMin[1],magMin[2],magMax[0],magMax[1],magMax[2],m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed.waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind.apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth.anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth.depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_depth.unknown,Position"
 
-def decode_data(line):
-    dat = line.split(",")
+
+class WritableSocket():
+    def __init__(self, ip, port):
+        self.port = port
+        self.ip = ip
+
+        self.sock = socket.socket(socket.AF_INET,  # Internet
+                                  socket.SOCK_DGRAM)  # UDP
+
+    def write(self, mess):
+        self.sock.sendto(mess.encode("utf-8"), (self.ip, self.port))
+
+
+def decode_data(l):
+    dat = l.split(",")
     data = dict()
     for e, d in zip(HEADER.split(','), dat):
         data[e] = d
     return data
+
 
 def new_serial(name, boud):
     ser = serial.Serial(name, boud, rtscts=True, dsrdtr=True)
@@ -38,9 +50,10 @@ def new_serial(name, boud):
     ser.writeTimeout = 0  # timeout for write
     return ser
 
+
 if not TEST:
     ser_in = new_serial(SERIALPORTIN, BAUDRATEIN)
-ser_out = new_serial(SERIALPORTOUT, BAUDRATEOUT)
+out = WritableSocket("127.0.0.1", 2947)
 
 print('Starting Up Serial Monitor')
 fh = None
@@ -58,23 +71,23 @@ try:
         # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
         #ser_out.write(pynmea2.GGA('GP', 'GGA', ('184353.07', '1929.045', 'S', '02410.506', 'E', '1', '04', '2.6', '100.00', 'M', '-33.9', 'M', '', '0000')).render(True,True,True))
         try:
-            ser_out.write(pynmea2.VHW('GP', 'VHW', ("", "T", "", "M", data["m_speed"], "K", str(float(data["m_speed"])*1.6), "K")).render(True, True, True).encode())
+            out.write(pynmea2.VHW('GP', 'VHW', ("", "T", "", "M", data["m_speed"], "K", str(float(data["m_speed"])*1.6), "K")).render(True, True, True))
         except ValueError as e:
             print(e)
-        ser_out.write(pynmea2.MWV('GP', 'MWV', (data["m_wind.apparentAngle"], "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True).encode())
-        ser_out.write(pynmea2.HDM('GP', 'HDM', (data["yaw"], "M")).render(True, True, True).encode())
-        ser_out.write(pynmea2.DPT('GP', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True).encode())
-        ser_out.write(pynmea2.MTW('GP', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True).encode())
+        out.write(pynmea2.MWV('GP', 'MWV', (data["m_wind.apparentAngle"], "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
+        out.write(pynmea2.HDM('GP', 'HDM', (data["yaw"], "M")).render(True, True, True))
+        out.write(pynmea2.DPT('GP', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
+        out.write(pynmea2.MTW('GP', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
         #https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:nmea_converter
         try:
             angle = float(data["m_wind.apparentAngle"]) / 180.0 * math.pi
             wind_speed = float(data["m_wind.apparentSpeed"])
             boat_speed = float(data["m_speed"])
-            ser_out.write(pynmea2.MWV('GP', 'MWV', (str(180.0/math.pi*(angle + math.acos((math.sqrt(wind_speed) + math.sqrt(boat_speed)+math.sqrt(wind_speed)-2 *boat_speed *wind_speed * math.cos(angle)-math.sqrt(boat_speed)) / (2 * math.sqrt(math.sqrt(
+            out.write(pynmea2.MWV('GP', 'MWV', (str(180.0/math.pi*(angle + math.acos((math.sqrt(wind_speed) + math.sqrt(boat_speed)+math.sqrt(wind_speed)-2 *boat_speed *wind_speed * math.cos(angle)-math.sqrt(boat_speed)) / (2 * math.sqrt(math.sqrt(
                                                                                                                                                    boat_speed) + math.sqrt(wind_speed)-2 *boat_speed * math.cos(angle)) * wind_speed)))),
                                                     "T",
                                                     str(math.sqrt(math.sqrt(boat_speed)+math.sqrt(wind_speed)-2 *boat_speed *wind_speed * math.cos(angle))),
-                                                    "N", "A")).render(True, True, True).encode())
+                                                    "N", "A")).render(True, True, True))
         except (ValueError, ZeroDivisionError) as e:
             print(e)
         # TODO: check for units:
