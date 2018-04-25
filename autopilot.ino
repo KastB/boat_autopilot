@@ -15,16 +15,16 @@
 //Connection Handlers
 
 TimersClass 	g_timer;
-Radio 			g_radio 		= 	Radio			(50, 0,10);
+Radio 			g_radio 		= 	Radio			(50, 0,10);                                                                 // praktisch nichts
 //IR				g_ir			=	IR				(50, 2);
-RotaryEncoder 	g_rotaryEncoder	=	RotaryEncoder	(2, 9,8);
-Motor 			g_motor			= 	Motor			(50, &g_rotaryEncoder);
-IMU				g_imu 			= 	IMU				(20);
+RotaryEncoder 	g_rotaryEncoder	=	RotaryEncoder	(2, 9,8);                                                                   // praktisch nichts
+Motor 			g_motor			= 	Motor			(50, &g_rotaryEncoder);                                                     // praktisch nichts
+IMU				g_imu 			= 	IMU				(20);                                                                       // laut benchmarks auf https://github.com/kriswiner/MPU6050/wiki/Affordable-9-DoF-Sensor-Fusion ca 5 ms
 Seatalk			g_seatalk		= 	Seatalk			(20);				//needs to be called with correct frequency in order to detect corrupt messages without 9-bit mode (without using command bit)
-GPS				g_gps			=	GPS				(10);
-PID 			g_pid 			= 	PID				(500, &g_imu, & g_seatalk, &g_motor);
-KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25);
-UI 				g_ui 			= 	UI				(50, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer);
+GPS				g_gps			=	GPS				(10);                                                                       // kommt erst noch => hoffentlich nahe null
+PID 			g_pid 			= 	PID				(500, &g_imu, & g_seatalk, &g_motor);                                       // vernachlässigbar (hoffentlich
+KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25);                                                                      // vermutlich kürzer als 2ms => 16 analog reads
+UI 				g_ui 			= 	UI				(50, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); // ~20ms (200 chars über serial1) alle 1s
 
 
 

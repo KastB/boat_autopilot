@@ -1,6 +1,8 @@
 #include "Seatalk.h"
 #include "Arduino.h"
 
+// True wind: $XXMWV,$WIMWV1+acos((sqr($WIMWV3)+sqr($GPRMC7)+sqr($WIMWV3)-2*$GPRMC7*$WIMWV3*cos($WIMWV1*3.14159265/180)-sqr($GPRMC7))/(2*sqrt(sqr($GPRMC7)+sqr($WIMWV3)-2*$GPRMC7*cos($WIMWV1*3.14159265/180))*$WIMWV3)),T,sqrt(sqr($GPRMC7)+SQR($WIMWV3)-2*$GPRMC7*$WIMWV3*cos($WIMWV1*3.14159265/180)),N,A
+
 Seatalk::Seatalk(unsigned long interval) {
 	m_interval = interval;
 
