@@ -15,7 +15,7 @@ import time
 SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 19200
-TEST = False
+TEST = True
 
 HEADER = "Millis,m_currentPosition,m_pressedButtonDebug,m_bytesToSent,CurrentPosition,CurrentDirection,TargetPosition,MSStopped,startButton,stopButton,parkingButton,m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_lastFilteredYaw,yaw,filteredYaw,pitch,roll,freq,magMin[0],magMin[1],magMin[2],magMax[0],magMax[1],magMax[2],m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed.waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind.apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth.anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth.depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_depth.unknown,Position"
 
@@ -27,9 +27,11 @@ class WritableSocket:
 
         self.sock = socket.socket(socket.AF_INET,  # Internet
                                   socket.SOCK_DGRAM)  # UDP
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, True)
+        self.sock.settimeout(5)
 
     def write(self, mess):
-        self.sock.sendto(mess.encode("utf-8"), (self.ip, self.port))
+        self.sock.sendto(mess.encode("utf-8"), ("10.42.0.0", self.port))
 
 
 def decode_data(l):
@@ -57,6 +59,51 @@ def new_serial(name, boud):
     ser.writeTimeout = 0  # timeout for write
     return ser
 
+def send_data(out, data):
+    # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
+    # ser_out.write(pynmea2.GGA('GP', 'GGA', ('184353.07', '1929.045', 'S', '02410.506', 'E', '1', '04', '2.6', '100.00', 'M', '-33.9', 'M', '', '0000')).render(True,True,True))
+    try:
+        out.write(pynmea2.VHW('GP', 'VHW', ("", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+    except Exception as e:
+        print(e)
+    try:
+        print(data["m_wind.apparentAngle"])
+
+        out.write(pynmea2.MWV('GP', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
+        out.write(pynmea2.HDM('GP', 'HDM', (data["yaw"], "M")).render(True, True, True))
+        out.write(pynmea2.DPT('GP', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
+        out.write(pynmea2.MTW('GP', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
+        out.write(pynmea2.VTG('GP', 'VTG', ("0.0", "", "0.0", "", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+    except Exception as e:
+        print(e)
+    # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:nmea_converter
+    try:
+        wind_direction = float(data["m_wind.apparentAngle"]) / 180.0 * math.pi
+        wind_speed = float(data["m_wind.apparentSpeed"])
+        boat_speed = float(data["m_speed"])
+        boat_direction = 0.0
+        u = boat_speed * math.sin(boat_direction) - wind_speed * math.sin(wind_direction)
+        v = boat_speed * math.cos(boat_direction) - wind_speed * math.cos(wind_direction)
+
+        tws = str(math.sqrt(u * u + v * v))
+
+        twd = 180.0 + math.atan2(u, v) * 180.0 / math.pi
+        if twd < 0.0:
+            twd += 360.0
+        twd = str(twd)
+
+        out.write(pynmea2.MWV('GP', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
+    except (ValueError, ZeroDivisionError, KeyError) as e:
+        print(e)
+
+    # TODO: check for units:
+    # depth: m_depth.metricUnits
+    # Windspeed
+    # vhw
+    # TODO: add trip and total mileage etc
+    # TODO: add gps
+    # TODO: add waypoint handling as backward channel
+
 
 def run():
     ser_in = None
@@ -70,6 +117,7 @@ def run():
         if TEST:
             fh = open("/export/home/bernd/src/boat_autopilot/data/data.csv")
         while True:
+            # get data
             if TEST:
                 line = fh.readline()
                 time.sleep(1)
@@ -77,49 +125,7 @@ def run():
                 line = ser_in.readline().decode()
             data = decode_data(line)
             print(data)
-
-            # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
-            # ser_out.write(pynmea2.GGA('GP', 'GGA', ('184353.07', '1929.045', 'S', '02410.506', 'E', '1', '04', '2.6', '100.00', 'M', '-33.9', 'M', '', '0000')).render(True,True,True))
-            try:
-                out.write(pynmea2.VHW('GP', 'VHW', ("", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
-            except Exception as e:
-                print(e)
-            try:
-                print(data["m_wind.apparentAngle"])
-
-                out.write(pynmea2.MWV('GP', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
-                out.write(pynmea2.HDM('GP', 'HDM', (data["yaw"], "M")).render(True, True, True))
-                out.write(pynmea2.DPT('GP', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
-                out.write(pynmea2.MTW('GP', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
-                out.write(pynmea2.VTG('GP', 'VTG', ("0.0","","0.0","", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
-            except Exception as e:
-                print(e)
-            # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:nmea_converter
-            try:
-                wind_direction = float(data["m_wind.apparentAngle"]) / 180.0 * math.pi
-                wind_speed = float(data["m_wind.apparentSpeed"])
-                boat_speed = float(data["m_speed"])
-                boat_direction = 0.0
-                u = boat_speed * math.sin(boat_direction) - wind_speed * math.sin(wind_direction)
-                v = boat_speed * math.cos(boat_direction) - wind_speed * math.cos(wind_direction)
-
-                tws = str(math.sqrt(u * u + v * v))
-
-                twd = 180.0 + math.atan2(u, v) * 180.0 / math.pi
-                if twd < 0.0:
-                    twd += 360.0
-                twd = str(twd)
-
-                out.write(pynmea2.MWV('GP', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
-            except (ValueError, ZeroDivisionError, KeyError) as e:
-                print(e)
-            # TODO: check for units:
-            # depth: m_depth.metricUnits
-            # Windspeed
-            # vhw
-            # TODO: add trip and total mileage etc
-            # TODO: add gps
-            # TODO: add waypoint handling as backward channel
+            send_data(out, data)
 
     except KeyboardInterrupt:
         print('interrupted!')
