@@ -1,11 +1,3 @@
-"""
-Description
-
-@author: Bernd Kast
-@copyright: Copyright (c) 2018, Siemens AG
-@note:  All rights reserved.
-"""
-
 import math
 import pynmea2
 import serial
