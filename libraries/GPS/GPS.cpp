@@ -23,7 +23,7 @@ GPS::~GPS() {
 
 void GPS::update()
 {
-	/*while(Serial1.available() > 0)
+	while(Serial1.available() > 0)
 	{
 		char incoming = Serial1.read();
 		if(incoming != '\n' && incoming != ' ' && incoming != '\r')
@@ -34,12 +34,18 @@ void GPS::update()
 		{
 			if(m_new_position.length() != 0)
 			{
-				m_position = m_new_position;
+				if(m_position == "")
+				{
+					m_position = m_new_position;
+				}
+				else
+				{
+					m_position = m_position + "##" + m_new_position;
+				}
 				m_new_position = "";
-				Serial.println(m_position);
 			}
 		}
-	}*/
+	}
 }
 
 String GPS::debug()
