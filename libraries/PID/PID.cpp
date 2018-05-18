@@ -55,6 +55,8 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 
 	// create a one pole (RC) lowpass filter
 	m_lowpassOutput = new FilterOnePole ( LOWPASS, 1.0 );
+
+	m_highOnWind = 45.0f;
 }
 
 PID::~PID() {
@@ -123,6 +125,7 @@ void PID::update()
 	float error;
 	int position;
 	float roll, pitch, yaw, filteredYaw;
+	boolean increase_error = false;
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
 	if(m_goalType == MAGNET)
 	{
@@ -131,6 +134,12 @@ void PID::update()
 	else if(m_goalType == WIND)
 	{
 		error = m_seatalk->m_wind.apparentAngle - m_goal;
+		//if we are high on the wind and higher -than commanded scale error up
+		if (m_goal < m_highOnWind && m_seatalk->m_wind.apparentAngle < m_goal)
+				increase_error = true;
+		if (m_goal > 360.0f - m_highOnWind && m_seatalk->m_wind.apparentAngle > m_goal)
+			increase_error = true;
+
 	}
 	else
 	{
@@ -140,7 +149,6 @@ void PID::update()
 		return;
 	}
 
-
 	if( fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
 		p = m_P2;
 	else if (fabs(error) < 2.0f * m_settled)	// larger P value for unsettled system => faster response
@@ -149,6 +157,8 @@ void PID::update()
 	{
 		p = m_P2 + (m_P - m_P2) / m_settled * (fabs(error)-m_settled);
 	}
+	if (increase_error)
+		p = m_P * 1.1f;
 
 	normalize(error);
 	while (error > 180.0f)
