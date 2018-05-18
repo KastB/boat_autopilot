@@ -2,8 +2,6 @@
 Description
 
 @author: Bernd Kast
-@copyright: Copyright (c) 2018, Siemens AG
-@note:  All rights reserved.
 """
 import socket
 import threading
@@ -11,17 +9,18 @@ import time
 
 
 class UDPServer(object):
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, broadcast=False):
         self.port = port
         self.ip = ip
 
         self.sock = socket.socket(socket.AF_INET,  # Internet
                                   socket.SOCK_DGRAM)  # UDP
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, True)
+        if broadcast:
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, True)
         self.sock.settimeout(5)
 
     def write(self, msg):
-        self.sock.sendto(msg.encode("utf-8"), ("10.42.0.0", self.port))
+        self.sock.sendto(msg.encode("utf-8"), (self.ip, self.port))
 
 
 class TCPServer(object):
@@ -45,7 +44,7 @@ class TCPServer(object):
         self.client_listener.start()
 
     def listen_for_clients(self):
-        while(1):
+        while 1:
             client, address = self.sock.accept()
             self.aquire_lock()
             self.clients.append(client)
