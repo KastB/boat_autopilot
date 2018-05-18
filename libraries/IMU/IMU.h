@@ -75,6 +75,7 @@ public:
 	String debugHeader();
 	void deleteCalibration();
 	void setCurrentRotationAsRef();
+	void setCalibrationOffset(float offset);
 	void resetRotationRef();
 	void setFilterFrequency(float freq);
 	void getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw);
@@ -101,6 +102,9 @@ private:
 	void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void updateRPY();
+	void quaternion_product(float *q1, float *q2, float *r); //x,y,z,w
+	void quaternion_inverse(float *q, float *i); //x,y,z,w
+	void quaternion_print(float *q);
 
 	void initilizeCalibration();
 	void storeCalibration();

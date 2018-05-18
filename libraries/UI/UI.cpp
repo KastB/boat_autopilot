@@ -159,6 +159,7 @@ void UI::exec(String cmd)
 				case 'R': setDebugDevisor(value);break;
 				case 'F': m_imu->setFilterFrequency(value);break;
 				case 'C': m_pid->setFilterFrequency(value);break;
+				case 'O': m_imu->setCalibrationOffset(value * PI / 180.0f);break;
 				default: break;
 			}
 		}
@@ -201,7 +202,7 @@ void UI::setDebugDevisor(int div)
 
 void UI::msg_help()
 {
-	String msg =String("?: this help\n\r") +
+	String msg = String("?: this help\n\r") +
 						"DELCAL: delete IMU calibration\n\r" +
 						"SETROT: set current rotation as reference\n\r" +
 						"RESETROT: reset current rotation reference\n\r" +

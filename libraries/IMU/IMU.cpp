@@ -226,7 +226,7 @@ void IMU::MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float
 	float q3q4 = q3 * q4;
 	float q4q4 = q4 * q4;
 
-	// Normalise accelerometer measurement
+	// Normalize accelerometer measurement
 	norm = sqrt(ax * ax + ay * ay + az * az);
 	if (norm == 0.0f) return; // handle NaN
 	norm = 1.0f/norm;
@@ -234,7 +234,7 @@ void IMU::MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float
 	ay *= norm;
 	az *= norm;
 
-	// Normalise magnetometer measurement
+	// Normalize magnetometer measurement
 	norm = sqrt(mx * mx + my * my + mz * mz);
 	if (norm == 0.0f) return; // handle NaN
 	norm = 1.0f/norm;
@@ -320,7 +320,7 @@ void IMU::MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float g
 	ay *= norm;
 	az *= norm;
 
-	// Normalise magnetometer measurement
+	// Normalize magnetometer measurement
 	norm = sqrt(mx * mx + my * my + mz * mz);
 	if (norm == 0.0f) return; // handle NaN
 	norm = 1.0f / norm;        // use reciprocal for division
@@ -393,19 +393,51 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw)
 	filteredYaw = m_filteredYaw;
 }
 
+void IMU::quaternion_product(float *q1, float *q2, float *r) //x,y,z,w
+{
+	r[3] = q1[3]*q2[3] - q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2];
+	r[0] = q1[3]*q2[0] + q1[0]*q2[3] - q1[1]*q2[2] + q1[2]*q2[1];
+	r[1] = q1[3]*q2[1] + q1[0]*q2[2] + q1[1]*q2[3] - q1[2]*q2[0];
+	r[2] = q1[3]*q2[2] - q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3];
+}
+
+void IMU::quaternion_inverse(float *q, float *i) //x,y,z,w
+{
+	float l = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
+
+	i[0] = q[0] / l;
+	i[1] = q[1] / l;
+	i[2] = q[2] / l;
+	i[3] = q[3] / l;
+}
+
+void IMU::quaternion_print(float *q)
+{
+	Serial.print(q[0]);
+	Serial.print("\t");
+	Serial.print(q[1]);
+	Serial.print("\t");
+	Serial.print(q[2]);
+	Serial.print("\t");
+	Serial.println(q[3]);
+
+}
+
 void IMU::updateRPY()
 {
-	double quat[4];
+	float quat[4];
 //	for(int i = 0; i < 4; i++)
-	//	Serial.println(q[i]);
+	//	Serial.println(q1[i]);
 
 //	for(int i = 0; i < 4; i++)
 //		Serial.println(m_calDat.rotRef[i]);
+	/*
 	quat[3] = q[3]*m_calDat.rotRef[3] - q[0]*m_calDat.rotRef[0] - q[1]*m_calDat.rotRef[1] - q[2]*m_calDat.rotRef[2];
 	quat[0] = q[3]*m_calDat.rotRef[0] + q[0]*m_calDat.rotRef[3] - q[1]*m_calDat.rotRef[2] + q[2]*m_calDat.rotRef[1];
 	quat[1] = q[3]*m_calDat.rotRef[1] + q[0]*m_calDat.rotRef[2] + q[1]*m_calDat.rotRef[3] - q[2]*m_calDat.rotRef[0];
 	quat[2] = q[3]*m_calDat.rotRef[2] - q[0]*m_calDat.rotRef[1] + q[1]*m_calDat.rotRef[0] + q[2]*m_calDat.rotRef[3];
-
+	*/
+	quaternion_product(q, m_calDat.rotRef, quat);
 //	for(int i = 0; i < 4; i++)
 	//	Serial.println(quat[i]);
 
@@ -582,11 +614,24 @@ void IMU::storeCalibration()
 
 void IMU::setCurrentRotationAsRef()
 {
-	m_calDat.rotRef[0] = -q[0];
-	m_calDat.rotRef[1] = -q[1];
-	m_calDat.rotRef[2] = -q[2];
+	m_calDat.rotRef[0] = q[0];
+	m_calDat.rotRef[1] = q[1];
+	m_calDat.rotRef[2] = q[2];
 	m_calDat.rotRef[3] = q[3];
 	calLibWrite(0,&m_calDat);
+}
+
+void IMU::setCalibrationOffset(float offset)
+{
+	float delta_rot[4];
+	delta_rot[0] = 0.0;
+	delta_rot[1] = 0.0;
+	delta_rot[2] = sin(offset);
+	delta_rot[3] = cos(offset);
+
+	quaternion_product(m_calDat.rotRef, delta_rot, m_calDat.rotRef);
+
+	calLibWrite(0, &m_calDat);
 }
 
 void IMU::resetRotationRef()
