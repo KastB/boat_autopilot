@@ -31,7 +31,8 @@ class TCPServer(object):
         self.ip = ip
 
         self.sock = socket.socket(socket.AF_INET,  # Internet
-                                  socket.SOCK_STREAM)  # UDP
+                                  socket.SOCK_STREAM)  # TCP
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((ip, port))
         self.sock.listen(max_connections)
 
@@ -44,16 +45,22 @@ class TCPServer(object):
         self.client_listener.start()
 
     def listen_for_clients(self):
-        client, address = self.sock.accept()
-        self.aquire_lock()
-
-        self.clients.append(client)
-        self.release_lock()
+        while(1):
+            client, address = self.sock.accept()
+            self.aquire_lock()
+            self.clients.append(client)
+            self.release_lock()
 
     def write(self, msg):
         self.aquire_lock()
-        for c in self.clients:
-            c.send(msg.encode())
+        clients = list(self.clients)
+        self.release_lock()
+        for c in clients:
+            try:
+                c.send(msg.encode())
+            except Exception as e:
+                print(e)
+                self.clients.remove(c)
         self.release_lock()
 
     def connection_handler(self, socket):

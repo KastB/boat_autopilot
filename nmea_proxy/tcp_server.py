@@ -41,26 +41,25 @@ def new_serial(name, boud):
 
 def send_data(out, data):
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
-    # ser_out.write(pynmea2.GGA('GP', 'GGA', ('184353.07', '1929.045', 'S', '02410.506', 'E', '1', '04', '2.6', '100.00', 'M', '-33.9', 'M', '', '0000')).render(True,True,True))
-    try:
-        out.write(pynmea2.VHW('GP', 'VHW', ("", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
-    except Exception as e:
-        print(e)
     try:
         out.write(pynmea2.MWV('GP', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
         out.write(pynmea2.HDM('GP', 'HDM', (data["yaw"], "M")).render(True, True, True))
         out.write(pynmea2.DPT('GP', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
         out.write(pynmea2.MTW('GP', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
-        out.write(pynmea2.VTG('GP', 'VTG', ("0.0", "", "0.0", "", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        out.write(pynmea2.VTG('GP', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        out.write(pynmea2.VHW('GP', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        angle = str(math.sin(int(data["m_currentPosition"]) / 600))
+        out.write(pynmea2.RSA('GP', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
         position_information = data["Position"].split("##")
         if len(position_information) > 0:
             for p in position_information:
                 out.write(p)
-
+        '''
         print("roll:" + data["roll"])
         print("pitch:" + data["pitch"])
         print("yaw:" + data["yaw"])
         print("freq:" + data["freq"])
+        '''
     except Exception as e:
         print(e)
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:nmea_converter
@@ -88,7 +87,6 @@ def send_data(out, data):
     # Windspeed
     # vhw
     # TODO: add trip and total mileage etc
-    # TODO: add gps
     # TODO: add waypoint handling as backward channel
 
 
@@ -112,9 +110,9 @@ def run():
                     time.sleep(1)
                 else:
                     line = ser_in.readline().decode()
-                print(line)
+                # print(line)
                 data = decode_data(line)
-                print(data)
+                # print(data)
                 send_data(out, data)
             except Exception as e:
                 print(e)
