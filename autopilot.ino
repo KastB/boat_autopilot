@@ -24,7 +24,7 @@ Seatalk			g_seatalk		= 	Seatalk			(20);				//needs to be called with correct fre
 GPS				g_gps			=	GPS				(10);                                                                       // kommt erst noch => hoffentlich nahe null
 PID 			g_pid 			= 	PID				(500, &g_imu, & g_seatalk, &g_motor);                                       // vernachlässigbar (hoffentlich
 KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25);                                                                      // vermutlich kürzer als 2ms => 16 analog reads
-UI 				g_ui 			= 	UI				(50, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); // ~20ms (200 chars über serial1) alle 1s
+UI 				g_ui 			= 	UI				(25, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); // ~20ms (200 chars über serial1) alle 1s
 
 
 
