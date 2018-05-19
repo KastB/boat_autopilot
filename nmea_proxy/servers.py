@@ -22,18 +22,23 @@ class UDPServer(object):
     def write(self, msg):
         self.sock.sendto(msg.encode("utf-8"), (self.ip, self.port))
 
+    def close(self):
+        pass
+
 
 class TCPServer(object):
     def __init__(self, ip, port, max_connections=20):
         self.buffer_size = 1024
         self.port = port
         self.ip = ip
+        self.run = True
 
         self.sock = socket.socket(socket.AF_INET,  # Internet
                                   socket.SOCK_STREAM)  # TCP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((ip, port))
         self.sock.listen(max_connections)
+        self.sock.settimeout(1)
 
         self.lock = True
         self.clients = []
@@ -44,8 +49,11 @@ class TCPServer(object):
         self.client_listener.start()
 
     def listen_for_clients(self):
-        while 1:
-            client, address = self.sock.accept()
+        while self.run:
+            try:
+                client, address = self.sock.accept()
+            except socket.timeout:
+                continue
             self.aquire_lock()
             self.clients.append(client)
             self.release_lock()
@@ -68,7 +76,8 @@ class TCPServer(object):
         # TODO: handle this as well
         print('Received {}'.format(request))
 
-    def stop(self):
+    def close(self):
+        self.run = False
         self.aquire_lock()
         for c in self.clients:
             c.close()

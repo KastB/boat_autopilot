@@ -1,3 +1,4 @@
+from pathlib import Path
 import math
 import pynmea2
 import serial
@@ -6,9 +7,9 @@ import time
 from nmea_proxy.servers import TCPServer
 
 SERIALPORTIN = "/dev/ttyS22"
-SERIALPORTIN = "/dev/rfcomm0"
-BAUDRATEIN = 19200
-TEST = True
+SERIALPORTIN = "/dev/ttyUSB0"
+BAUDRATEIN = 115200
+TEST = False
 
 HEADER = "Millis,m_currentPosition,m_pressedButtonDebug,m_bytesToSent,CurrentPosition,CurrentDirection,TargetPosition,MSStopped,startButton,stopButton,parkingButton,m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_lastFilteredYaw,UI,yaw,pitch,roll,freq,magMin[0],magMin[1],magMin[2],magMax[0],magMax[1],magMax[2],m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed.waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind.apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth.anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth.depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_depth.unknown,Position"
 
@@ -54,12 +55,12 @@ def send_data(out, data):
         if len(position_information) > 0:
             for p in position_information:
                 out.write(p)
-        '''
+
         print("roll:" + data["roll"])
         print("pitch:" + data["pitch"])
         print("yaw:" + data["yaw"])
         print("freq:" + data["freq"])
-        '''
+
     except Exception as e:
         print(e)
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:nmea_converter
@@ -95,13 +96,13 @@ def run():
     if not TEST:
         ser_in = new_serial(SERIALPORTIN, BAUDRATEIN)
     # out = UDPServer("127.0.0.1", 2947)
-    out = TCPServer("127.0.0.1", 2947)
+    out = TCPServer("0.0.0.0", 2947)
 
     print('Starting Up Serial Monitor')
     fh = None
     try:
         if TEST:
-            fh = open("/export/home/bernd/src/boat_autopilot/data/data.csv")
+            fh = open(str(Path.home()) + "/src/boat_autopilot/data/data.csv")
         while True:
             try:
                 # get data
@@ -120,6 +121,7 @@ def run():
     except KeyboardInterrupt:
         print('interrupted!')
         if TEST:
+            out.close()
             fh.close()
 
 
