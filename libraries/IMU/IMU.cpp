@@ -393,12 +393,12 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw)
 	filteredYaw = m_filteredYaw;
 }
 
-void IMU::quaternion_product(float *q1, float *q2, float *r) //x,y,z,w
+void IMU::quaternion_product(float *q1, float *q2, float *r) //w,x,y,z
 {
-	r[3] = q1[3]*q2[3] - q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2];
-	r[0] = q1[3]*q2[0] + q1[0]*q2[3] - q1[1]*q2[2] + q1[2]*q2[1];
-	r[1] = q1[3]*q2[1] + q1[0]*q2[2] + q1[1]*q2[3] - q1[2]*q2[0];
-	r[2] = q1[3]*q2[2] - q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3];
+	r[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];
+	r[1] = q1[0]*q2[1] + q1[1]*q2[0] - q1[2]*q2[3] + q1[3]*q2[2];
+	r[2] = q1[0]*q2[2] + q1[1]*q2[3] + q1[2]*q2[0] - q1[3]*q2[1];
+	r[3] = q1[0]*q2[3] - q1[1]*q2[2] + q1[2]*q2[1] + q1[3]*q2[0];
 }
 
 void IMU::quaternion_inverse(float *q, float *i) //x,y,z,w
@@ -454,15 +454,13 @@ void IMU::updateRPY()
 	pitch = -asin(2.0f * (quat[1] * quat[3] - quat[0] * quat[2]));
 	roll  = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), quat[0] * quat[0] - quat[1] * quat[1] - quat[2] * quat[2] + quat[3] * quat[3]);*/
 
-	m_yaw   = atan2(2.0f * (quat[3] * quat[0] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[0] * quat[0] + quat[1] * quat[1]));
-	m_pitch = asin (2.0f * (quat[3] * quat[1] - quat[2] * quat[0]));
-	m_roll  = atan2(2.0f * (quat[3] * quat[2] + quat[0] * quat[1]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
+	m_roll   = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
+	m_pitch = asin (2.0f * (quat[0] * quat[2] - quat[3] * quat[1]));
+	m_yaw  = atan2(2.0f * (quat[0] * quat[3] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[2] * quat[2] + quat[3] * quat[3]));
 
 	m_pitch *= 180.0f / PI;
 	m_yaw   *= 180.0f / PI ;
 	m_roll  *= 180.0f / PI;
-
-	m_yaw += 180.0f;
 
 	float y = m_yaw;
 
@@ -595,7 +593,8 @@ void IMU::initilizeCalibration()
 		m_calDat.magMax[i] = -10000;
 		m_calDat.rotRef[i] = 0.0;
 	}
-	m_calDat.rotRef[3] = 1.0;
+	m_calDat.rotRef[3] = 0.0;
+	m_calDat.rotRef[0] = 1.0;
 
 }
 void IMU::storeCalibration()
@@ -603,7 +602,7 @@ void IMU::storeCalibration()
 	if(m_calDat.magValid) //new Data arrived
 	{
 		setCalibrationData();
-		if(millis() - m_lastCalStore > 10000) //and last store was > 10sec in past
+		if(millis() - m_lastCalStore > 1000) //and last store was > 1sec in past
 		{
 			calLibWrite(0,&m_calDat);
 			m_lastCalStore = millis();
@@ -624,22 +623,33 @@ void IMU::setCurrentRotationAsRef()
 void IMU::setCalibrationOffset(float offset)
 {
 	float delta_rot[4];
-	delta_rot[0] = 0.0;
+	float res[4];
+	offset = offset / 2.0f;
+	delta_rot[0] = cos(offset);
 	delta_rot[1] = 0.0;
-	delta_rot[2] = sin(offset);
-	delta_rot[3] = cos(offset);
+	delta_rot[2] = 0.0;
+	delta_rot[3] = sin(offset);
+	quaternion_product(m_calDat.rotRef, delta_rot, res);
 
-	quaternion_product(m_calDat.rotRef, delta_rot, m_calDat.rotRef);
+	quaternion_print(m_calDat.rotRef);
+	quaternion_print(delta_rot);
+	quaternion_print(res);
+	updateRPY();
+	quaternion_print(q);
 
+	for(unsigned int i = 0; i < 4; i++)
+	{
+		m_calDat.rotRef[i] = res[i];
+	}
 	calLibWrite(0, &m_calDat);
 }
 
 void IMU::resetRotationRef()
 {
-	m_calDat.rotRef[0] = 0;
+	m_calDat.rotRef[0] = 1;
 	m_calDat.rotRef[1] = 0;
 	m_calDat.rotRef[2] = 0;
-	m_calDat.rotRef[3] = 1;
+	m_calDat.rotRef[3] = 0;
 }
 
 void IMU::setCalibrationData()
