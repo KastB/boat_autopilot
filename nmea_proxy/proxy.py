@@ -9,7 +9,7 @@ from nmea_proxy.servers import TCPServer
 SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/ttyUSB0"
 BAUDRATEIN = 115200
-TEST = True
+TEST = False
 DEBUG = False
 
 HEADER = "Millis,m_currentPosition,m_pressedButtonDebug,m_bytesToSent,CurrentPosition,CurrentDirection,TargetPosition,MSStopped,startButton,stopButton,parkingButton,m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_lastFilteredYaw,UI,yaw,pitch,roll,freq,magMin[0],magMin[1],magMin[2],magMax[0],magMax[1],magMax[2],m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed.waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind.apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth.anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth.depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_depth.unknown,Position"
@@ -37,21 +37,26 @@ def new_serial(name, boud):
     ser.xonxoff = False  # disable software flow control
     ser.rtscts = False  # disable hardware (RTS/CTS) flow control
     ser.dsrdtr = False  # disable hardware (DSR/DTR) flow control
-    ser.writeTimeout = 0  # timeout for write
+    ser.writeTimeout = 5  # timeout for write
     return ser
 
 
 def convert_and_send_as_nmea(out, data):
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
+    # https://github.com/OpenCPN/OpenCPN/blob/c4fb6a0ad0205501ae902b57f9c64b7d0262a199/plugins/dashboard_pi/src/dashboard_pi.cpp
     try:
-        out.write(pynmea2.MWV('GP', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
-        out.write(pynmea2.HDM('GP', 'HDM', (data["yaw"], "M")).render(True, True, True))
-        out.write(pynmea2.DPT('GP', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
-        out.write(pynmea2.MTW('GP', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
-        out.write(pynmea2.VTG('GP', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
-        out.write(pynmea2.VHW('GP', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        out.write(pynmea2.MWV('II', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
+        out.write(pynmea2.HDM('II', 'HDM', (data["yaw"], "M")).render(True, True, True))
+        out.write(pynmea2.DPT('II', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
+        out.write(pynmea2.MTW('II', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
+        out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        out.write(pynmea2.VHW('II', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+
+        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "PITCH")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", data["roll"], "", "ROLL")).render(True, True, True))
+
         angle = str(math.sin(int(data["m_currentPosition"]) / 600))
-        out.write(pynmea2.RSA('GP', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
+        out.write(pynmea2.RSA('II', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
         position_information = data["Position"].split("##")
         if len(position_information) > 0:
             for p in position_information:
@@ -81,7 +86,7 @@ def convert_and_send_as_nmea(out, data):
             twd += 360.0
         twd = str(twd)
 
-        out.write(pynmea2.MWV('GP', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
+        out.write(pynmea2.MWV('II', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
     except (ValueError, ZeroDivisionError, KeyError) as e:
         print(e)
 
@@ -127,12 +132,17 @@ def run():
             if len(ret) > 0:
                 print (ret)
                 if not TEST:
-                    fh.writelines(ret)
+                    try:
+                        for l in ret:
+                            ser_in.write("{}\n".format(l).encode())
+                    except Exception as e:
+                        print(e)
 
     except KeyboardInterrupt:
         print('interrupted!')
+        out_nmea.close()
+        out_raw.close()
         if TEST:
-            out_nmea.close()
             fh.close()
 
 

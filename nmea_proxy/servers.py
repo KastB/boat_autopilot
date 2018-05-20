@@ -55,13 +55,13 @@ class TCPServer(object):
                 client, address = self.sock.accept()
             except socket.timeout:
                 continue
-            self.aquire_lock()
+            self.acquire_lock()
             self.clients.append(client)
             self.release_lock()
             threading.Thread(target=self.connection_handler, args=(client,)).start()
 
     def write(self, msg):
-        self.aquire_lock()
+        self.acquire_lock()
         clients = list(self.clients)
         self.release_lock()
         for c in clients:
@@ -77,12 +77,13 @@ class TCPServer(object):
             msg = client.recv(self.buffer_size).decode()
             if msg == "":
                 break
-            self.aquire_lock()
+            print(msg)
+            self.acquire_lock()
             self.out_buffer.append(msg)
             self.release_lock()
 
     def get_out_buffer(self):
-        self.aquire_lock()
+        self.acquire_lock()
         out = self.out_buffer
         self.out_buffer = []
         self.release_lock()
@@ -90,10 +91,11 @@ class TCPServer(object):
 
     def close(self):
         self.run = False
-        self.aquire_lock()
+        self.acquire_lock()
         for c in self.clients:
             c.close()
-    def aquire_lock(self):
+
+    def acquire_lock(self):
         while not self.lock:
             time.sleep(0.1)
         self.lock = False
