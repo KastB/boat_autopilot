@@ -42,6 +42,7 @@ class TCPServer(object):
 
         self.lock = True
         self.clients = []
+        self.out_buffer = []
 
         self.client_listener = threading.Thread(
             target=self.listen_for_clients,
@@ -57,6 +58,7 @@ class TCPServer(object):
             self.aquire_lock()
             self.clients.append(client)
             self.release_lock()
+            threading.Thread(target=self.connection_handler, args=(client,)).start()
 
     def write(self, msg):
         self.aquire_lock()
@@ -70,18 +72,27 @@ class TCPServer(object):
                 self.clients.remove(c)
         self.release_lock()
 
-    def connection_handler(self, socket):
-        request = socket.recv(self.buffer_size)
+    def connection_handler(self, client):
+        while self.run:
+            msg = client.recv(self.buffer_size).decode()
+            if msg == "":
+                break
+            self.aquire_lock()
+            self.out_buffer.append(msg)
+            self.release_lock()
 
-        # TODO: handle this as well
-        print('Received {}'.format(request))
+    def get_out_buffer(self):
+        self.aquire_lock()
+        out = self.out_buffer
+        self.out_buffer = []
+        self.release_lock()
+        return out
 
     def close(self):
         self.run = False
         self.aquire_lock()
         for c in self.clients:
             c.close()
-
     def aquire_lock(self):
         while not self.lock:
             time.sleep(0.1)

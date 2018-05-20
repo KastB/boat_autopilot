@@ -9,7 +9,8 @@ from nmea_proxy.servers import TCPServer
 SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/ttyUSB0"
 BAUDRATEIN = 115200
-TEST = False
+TEST = True
+DEBUG = False
 
 HEADER = "Millis,m_currentPosition,m_pressedButtonDebug,m_bytesToSent,CurrentPosition,CurrentDirection,TargetPosition,MSStopped,startButton,stopButton,parkingButton,m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_lastFilteredYaw,UI,yaw,pitch,roll,freq,magMin[0],magMin[1],magMin[2],magMax[0],magMax[1],magMax[2],m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed.waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind.apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth.anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth.depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_depth.unknown,Position"
 
@@ -40,7 +41,7 @@ def new_serial(name, boud):
     return ser
 
 
-def send_data(out, data):
+def convert_and_send_as_nmea(out, data):
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
     try:
         out.write(pynmea2.MWV('GP', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
@@ -55,11 +56,11 @@ def send_data(out, data):
         if len(position_information) > 0:
             for p in position_information:
                 out.write(p)
-
-        print("roll:" + data["roll"])
-        print("pitch:" + data["pitch"])
-        print("yaw:" + data["yaw"])
-        print("freq:" + data["freq"])
+        if DEBUG:
+            print("roll:" + data["roll"])
+            print("pitch:" + data["pitch"])
+            print("yaw:" + data["yaw"])
+            print("freq:" + data["freq"])
 
     except Exception as e:
         print(e)
@@ -68,6 +69,7 @@ def send_data(out, data):
         wind_direction = float(data["m_wind.apparentAngle"]) / 180.0 * math.pi
         wind_speed = float(data["m_wind.apparentSpeed"])
         boat_speed = float(data["m_speed"])
+
         boat_direction = 0.0
         u = boat_speed * math.sin(boat_direction) - wind_speed * math.sin(wind_direction)
         v = boat_speed * math.cos(boat_direction) - wind_speed * math.cos(wind_direction)
@@ -95,8 +97,9 @@ def run():
     ser_in = None
     if not TEST:
         ser_in = new_serial(SERIALPORTIN, BAUDRATEIN)
-    # out = UDPServer("127.0.0.1", 2947)
-    out = TCPServer("0.0.0.0", 2947)
+    # out_nmea = UDPServer("127.0.0.1", 2947)
+    out_nmea = TCPServer("0.0.0.0", 2947)
+    out_raw = TCPServer("0.0.0.0", 2948)
 
     print('Starting Up Serial Monitor')
     fh = None
@@ -114,31 +117,26 @@ def run():
                 # print(line)
                 data = decode_data(line)
                 # print(data)
-                send_data(out, data)
+                convert_and_send_as_nmea(out_nmea, data)
+                out_raw.write(line)
             except Exception as e:
                 print(e)
+
+
+            ret = out_raw.get_out_buffer() + out_nmea.get_out_buffer()
+            if len(ret) > 0:
+                print (ret)
+                if not TEST:
+                    fh.writelines(ret)
 
     except KeyboardInterrupt:
         print('interrupted!')
         if TEST:
-            out.close()
+            out_nmea.close()
             fh.close()
 
 
 ''''
-class MWV(TalkerSentence, ValidStatusFix):
-    """ Wind Speed and Angle
-    NMEA 0183 standard Wind Speed and Angle, in relation to the vessel's
-    bow/centerline.
-    """
-    fields = (
-        ("Wind angle", "wind_angle", Decimal), # in relation to vessel's centerline
-        ("Reference", "reference"), # relative (R)/true(T)
-        ("Wind speed", "wind_speed", Decimal),
-        ("Wind speed units", "wind_speed_units"), # K/M/N
-        ("Status", "status"),
-    )
-
 class DBT(TalkerSentence):
     """ Depth Below Transducer
     """
@@ -151,13 +149,6 @@ class DBT(TalkerSentence):
         ("fathoms", "unit_fathoms"),
     )
 
-class MTW(TalkerSentence):
-    """ Water Temperature
-    """
-    fields = (
-        ('Water temperature', 'temperature', Decimal),
-        ('Unit of measurement', 'units'),
-    )
 class VLW(TalkerSentence):
     """ Distance Traveled through the Water
     """
