@@ -54,7 +54,7 @@ private:
 	unsigned long m_InoUpdate;			// no update of I till before this time
 	float m_rotVelDyn;					// no update of I when boat rotates faster than this speed (°/s)
 
-	float m_highOnWind;					// when we are higher on the wind than this number we are high on the wind [°]
+	float m_closeHauledAngle;					// when we are higher on the wind than this number we are high on the wind [°]
 
 	FilterOnePole *m_lowpassOutput;
 

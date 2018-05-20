@@ -389,8 +389,9 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw)
 {
 	roll = m_roll;
 	pitch = m_pitch;
-	yaw = m_yaw;
-	filteredYaw = m_filteredYaw;
+	// Magnetic Rotation direction is reversed
+	yaw = -m_yaw;
+	filteredYaw = -m_filteredYaw;
 }
 
 void IMU::quaternion_product(float *q1, float *q2, float *r) //w,x,y,z
@@ -462,9 +463,7 @@ void IMU::updateRPY()
 	m_yaw   *= 180.0f / PI ;
 	m_roll  *= 180.0f / PI;
 
-	float y = m_yaw;
-
-	m_filteredYaw = m_lowpassFilter->input(y);
+	m_filteredYaw = m_lowpassFilter->input(m_yaw);
 }
 String IMU::debug()
 {
@@ -630,12 +629,6 @@ void IMU::setCalibrationOffset(float offset)
 	delta_rot[2] = 0.0;
 	delta_rot[3] = sin(offset);
 	quaternion_product(m_calDat.rotRef, delta_rot, res);
-
-	quaternion_print(m_calDat.rotRef);
-	quaternion_print(delta_rot);
-	quaternion_print(res);
-	updateRPY();
-	quaternion_print(q);
 
 	for(unsigned int i = 0; i < 4; i++)
 	{

@@ -56,7 +56,7 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	// create a one pole (RC) lowpass filter
 	m_lowpassOutput = new FilterOnePole ( LOWPASS, 1.0 );
 
-	m_highOnWind = 45.0f;
+	m_closeHauledAngle = 45.0f;
 }
 
 PID::~PID() {
@@ -127,6 +127,7 @@ void PID::update()
 	float roll, pitch, yaw, filteredYaw;
 	boolean increase_error = false;
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
+
 	if(m_goalType == MAGNET)
 	{
 		error = m_goal - yaw;
@@ -135,9 +136,9 @@ void PID::update()
 	{
 		error = m_seatalk->m_wind.apparentAngle - m_goal;
 		//if we are high on the wind and higher -than commanded scale error up
-		if (m_goal < m_highOnWind && m_seatalk->m_wind.apparentAngle < m_goal)
+		if (m_goal < m_closeHauledAngle && m_seatalk->m_wind.apparentAngle < m_goal)
 				increase_error = true;
-		if (m_goal > 360.0f - m_highOnWind && m_seatalk->m_wind.apparentAngle > m_goal)
+		if (m_goal > 360.0f - m_closeHauledAngle && m_seatalk->m_wind.apparentAngle > m_goal)
 			increase_error = true;
 
 	}
