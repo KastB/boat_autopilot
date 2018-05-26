@@ -74,6 +74,8 @@ public:
 	String debug();
 	String debugHeader();
 	void deleteCalibration();
+	void enableCalibration();
+	void disableCalibration();
 	void setCurrentRotationAsRef();
 	void setCalibrationOffset(float offset);
 	void resetRotationRef();
@@ -105,15 +107,16 @@ private:
 	void quaternion_product(float *q1, float *q2, float *r); //x,y,z,w
 	void quaternion_inverse(float *q, float *i); //x,y,z,w
 	void quaternion_print(float *q);
+	void normalize(float &angle);
 
 	void initilizeCalibration();
 	void storeCalibration();
 	void setCalibrationData();
 
-
 	float m_compassCalOffset[3];
 	float m_compassCalScale[3];
 	bool m_calibrationValid;
+	bool m_enableCalibration;
 
 
 	FilterOrientation *m_lowpassFilter;

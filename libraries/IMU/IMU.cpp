@@ -66,6 +66,7 @@ IMU::IMU(unsigned long interval)
 		setCalibrationData();
 
 	m_lastCalStore = 0;
+	m_enableCalibration = false;
 }
 
 IMU::~IMU() {
@@ -108,38 +109,42 @@ void IMU::update()
 		/*	mx = m1*10.0f*1229.0f/4096.0f; // milliGauss (1229 microTesla per 2^12 bits, 10 mG per microTesla)
 			my = m2*10.0f*1229.0f/4096.0f; // apply calibration offsets in mG that correspond to your environment and magnetometer
 			mz = m3*10.0f*1229.0f/4096.0f;*/
-			if(m1 > m_calDat.magMax[0])
-			{
-				m_calDat.magMax[0] = m1;
-				m_calDat.magValid = true;
-			}
-			if(m2 > m_calDat.magMax[1])
-			{
-				m_calDat.magMax[1] = m2;
-				m_calDat.magValid = true;
-			}
-			if(m3 > m_calDat.magMax[2])
-			{
-				m_calDat.magMax[2] = m3;
-				m_calDat.magValid = true;
-			}
-			if(m1 < m_calDat.magMin[0])
-			{
-				m_calDat.magMin[0] = m1;
-				m_calDat.magValid = true;
-			}
-			if(m2 < m_calDat.magMin[1])
-			{
-				m_calDat.magMin[1] = m2;
-				m_calDat.magValid = true;
-			}
-			if(m3 < m_calDat.magMin[2])
-			{
-				m_calDat.magMin[2] = m3;
-				m_calDat.magValid = true;
-			}
 
-			storeCalibration();
+			if(m_enableCalibration)
+			{
+				if(m1 > m_calDat.magMax[0])
+				{
+					m_calDat.magMax[0] = m1;
+					m_calDat.magValid = true;
+				}
+				if(m2 > m_calDat.magMax[1])
+				{
+					m_calDat.magMax[1] = m2;
+					m_calDat.magValid = true;
+				}
+				if(m3 > m_calDat.magMax[2])
+				{
+					m_calDat.magMax[2] = m3;
+					m_calDat.magValid = true;
+				}
+				if(m1 < m_calDat.magMin[0])
+				{
+					m_calDat.magMin[0] = m1;
+					m_calDat.magValid = true;
+				}
+				if(m2 < m_calDat.magMin[1])
+				{
+					m_calDat.magMin[1] = m2;
+					m_calDat.magValid = true;
+				}
+				if(m3 < m_calDat.magMin[2])
+				{
+					m_calDat.magMin[2] = m3;
+					m_calDat.magValid = true;
+				}
+
+				storeCalibration();
+			}
 
 		    if (m_calibrationValid)
 		    {
@@ -156,22 +161,19 @@ void IMU::update()
 			mcount = 0;
 		}
 	}
-
-
-
-	  now = micros();
-	  deltat = ((now - lastUpdate)/1000000.0f); // set integration time by time elapsed since last filter update
-	  lastUpdate = now;
-	  /* Sensors x (y)-axis of the accelerometer is aligned with the y (x)-axis of the magnetometer;
-	   * the magnetometer z-axis (+ down) is opposite to z-axis (+ up) of accelerometer and gyro!
-	   * We have to make some allowance for this orientationmismatch in feeding the output to the quaternion filter.
-	   * For the MPU-9150, we have chosen a magnetic rotation that keeps the sensor forward along the x-axis just like
-	   * in the LSM9DS0 sensor. This rotation can be modified to allow any convenient orientation convention.
-	   * This is ok by aircraft orientation standards!
-	   * Pass gyro rate as rad/s
-	  */
-	  MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
-	  //MahonyQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f, my, mx, mz);
+	now = micros();
+	deltat = ((now - lastUpdate)/1000000.0f); // set integration time by time elapsed since last filter update
+	lastUpdate = now;
+	/* Sensors x (y)-axis of the accelerometer is aligned with the y (x)-axis of the magnetometer;
+	* the magnetometer z-axis (+ down) is opposite to z-axis (+ up) of accelerometer and gyro!
+	* We have to make some allowance for this orientationmismatch in feeding the output to the quaternion filter.
+	* For the MPU-9150, we have chosen a magnetic rotation that keeps the sensor forward along the x-axis just like
+	* in the LSM9DS0 sensor. This rotation can be modified to allow any convenient orientation convention.
+	* This is ok by aircraft orientation standards!
+	* Pass gyro rate as rad/s
+	*/
+	MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
+	//MahonyQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f, my, mx, mz);
 
 	// With these settings the filter is updating at a ~145 Hz rate using the Madgwick scheme and
 	// >200 Hz using the Mahony scheme even though the display refreshes at only 2 Hz.
@@ -184,7 +186,6 @@ void IMU::update()
 	// stabilization control of a fast-moving robot or quadcopter. Compare to the update rate of 200 Hz
 	// produced by the on-board Digital Motion Processor of Invensense's MPU6050 6 DoF and MPU9150 9DoF sensors.
 	// The 3.3 V 8 MHz Pro Mini is doing pretty well!
-
 }
 
 
@@ -287,8 +288,6 @@ void IMU::MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float
 	updateRPY();
 }
 
-
-
  // Similar to Madgwick scheme but uses proportional and integral filtering on the error between estimated reference vectors and
  // measured ones.
 void IMU::MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
@@ -381,7 +380,6 @@ void IMU::MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float g
 	q[2] = q3 * norm;
 	q[3] = q4 * norm;
 
-
 	updateRPY();
 }
 
@@ -389,9 +387,10 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw)
 {
 	roll = m_roll;
 	pitch = m_pitch;
-	// Magnetic Rotation direction is reversed
-	yaw = -m_yaw;
-	filteredYaw = -m_filteredYaw;
+	yaw = m_yaw;
+	filteredYaw = m_filteredYaw;
+	normalize(m_yaw);
+	normalize(m_filteredYaw);
 }
 
 void IMU::quaternion_product(float *q1, float *q2, float *r) //w,x,y,z
@@ -402,14 +401,14 @@ void IMU::quaternion_product(float *q1, float *q2, float *r) //w,x,y,z
 	r[3] = q1[0]*q2[3] - q1[1]*q2[2] + q1[2]*q2[1] + q1[3]*q2[0];
 }
 
-void IMU::quaternion_inverse(float *q, float *i) //x,y,z,w
+void IMU::quaternion_inverse(float *q, float *i) //w,x,y,z
 {
 	float l = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
 
 	i[0] = q[0] / l;
-	i[1] = q[1] / l;
-	i[2] = q[2] / l;
-	i[3] = q[3] / l;
+	i[1] = -q[1] / l;
+	i[2] = -q[2] / l;
+	i[3] = -q[3] / l;
 }
 
 void IMU::quaternion_print(float *q)
@@ -421,43 +420,26 @@ void IMU::quaternion_print(float *q)
 	Serial.print(q[2]);
 	Serial.print("\t");
 	Serial.println(q[3]);
-
 }
 
 void IMU::updateRPY()
 {
 	float quat[4];
-//	for(int i = 0; i < 4; i++)
-	//	Serial.println(q1[i]);
-
-//	for(int i = 0; i < 4; i++)
-//		Serial.println(m_calDat.rotRef[i]);
-	/*
-	quat[3] = q[3]*m_calDat.rotRef[3] - q[0]*m_calDat.rotRef[0] - q[1]*m_calDat.rotRef[1] - q[2]*m_calDat.rotRef[2];
-	quat[0] = q[3]*m_calDat.rotRef[0] + q[0]*m_calDat.rotRef[3] - q[1]*m_calDat.rotRef[2] + q[2]*m_calDat.rotRef[1];
-	quat[1] = q[3]*m_calDat.rotRef[1] + q[0]*m_calDat.rotRef[2] + q[1]*m_calDat.rotRef[3] - q[2]*m_calDat.rotRef[0];
-	quat[2] = q[3]*m_calDat.rotRef[2] - q[0]*m_calDat.rotRef[1] + q[1]*m_calDat.rotRef[0] + q[2]*m_calDat.rotRef[3];
-	*/
 	quaternion_product(q, m_calDat.rotRef, quat);
-//	for(int i = 0; i < 4; i++)
-	//	Serial.println(quat[i]);
 
-	  // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
-	  // In this coordinate system, the positive z-axis is down toward Earth.
-	  // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
-	  // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
-	  // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
-	  // These arise from the definition of the homogeneous rotation matrix constructed from quaternions.
-	  // Tait-Bryan angles as well as Euler angles are non-commutative; that is, the get the correct orientation the rotations must be
-	  // applied in the correct order which for this configuration is yaw, pitch, and then roll.
-	  // For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
-	/*yaw   = atan2(2.0f * (quat[1] * quat[2] + quat[0] * quat[3]), quat[0] * quat[0] + quat[1] * quat[1] - quat[2] * quat[2] - quat[3] * quat[3]);
-	pitch = -asin(2.0f * (quat[1] * quat[3] - quat[0] * quat[2]));
-	roll  = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), quat[0] * quat[0] - quat[1] * quat[1] - quat[2] * quat[2] + quat[3] * quat[3]);*/
+	// Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
+	// In this coordinate system, the positive z-axis is down toward Earth.
+	// Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
+	// Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
+	// Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
+	// These arise from the definition of the homogeneous rotation matrix constructed from quaternions.
+	// Tait-Bryan angles as well as Euler angles are non-commutative; that is, the get the correct orientation the rotations must be
+	// applied in the correct order which for this configuration is yaw, pitch, and then roll.
+	// For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
 
-	m_roll   = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
+	m_roll  = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
 	m_pitch = asin (2.0f * (quat[0] * quat[2] - quat[3] * quat[1]));
-	m_yaw  = atan2(2.0f * (quat[0] * quat[3] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[2] * quat[2] + quat[3] * quat[3]));
+	m_yaw   = atan2(2.0f * (quat[0] * quat[3] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[2] * quat[2] + quat[3] * quat[3]));
 
 	m_pitch *= 180.0f / PI;
 	m_yaw   *= 180.0f / PI ;
@@ -566,14 +548,13 @@ String IMU::debugHeader()
 	"magMax[2]";
 }
 
-
-
-
 void IMU::deleteCalibration()
 {
 	calLibErase(0);
 	initilizeCalibration();
+	m_enableCalibration = true;
 }
+
 void IMU::initilizeCalibration()
 {
 	a1=a2=a3=g1=g2=g3=m1=m2=m3=0;
@@ -612,10 +593,7 @@ void IMU::storeCalibration()
 
 void IMU::setCurrentRotationAsRef()
 {
-	m_calDat.rotRef[0] = q[0];
-	m_calDat.rotRef[1] = q[1];
-	m_calDat.rotRef[2] = q[2];
-	m_calDat.rotRef[3] = q[3];
+	quaternion_inverse(q, m_calDat.rotRef);
 	calLibWrite(0,&m_calDat);
 }
 
@@ -659,3 +637,27 @@ void IMU::setCalibrationData()
 	m_calibrationValid = true;
 }
 
+void IMU::enableCalibration()
+{
+	m_enableCalibration = true;
+}
+
+void IMU::disableCalibration()
+{
+	m_enableCalibration = false;
+	m_calDat.magValid = true;
+	calLibWrite(0,&m_calDat);
+}
+
+void IMU::normalize(float &angle)
+{
+	//normalize
+	while (angle > 360.0f)
+	{
+		angle -= 360.0f;
+	}
+	while (angle <= 0.0f)
+	{
+		angle += 360.0f;
+	}
+}

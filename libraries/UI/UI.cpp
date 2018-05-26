@@ -102,13 +102,15 @@ void UI::exec(String cmd)
 	else if(cmd == "DELCAL")
 		m_imu->deleteCalibration();
 	else if(cmd == "SETROT")
-	{
 		m_imu->setCurrentRotationAsRef();
-	}
+	else if(cmd == "SETROT")
+		m_imu->setCurrentRotationAsRef();
+	else if(cmd == "DISCAL")
+		m_imu->disableCalibration();
+	else if(cmd == "ENCAL")
+		m_imu->enableCalibration();
 	else if(cmd == "RESETROT")
-	{
 		m_imu->resetRotationRef();
-	}
 	else if(cmd == "T")
 		m_pid->tack();
 	else if(cmd == "GP")
@@ -120,11 +122,13 @@ void UI::exec(String cmd)
 	{
 		m_pid->setInactiv();
 		m_motor->initialize();
+		m_pid->resetErrorSum();
 	}
 	else if(cmd == "RI")
 	{
 		m_pid->setInactiv();
 		m_motor->reinitialize();
+		m_pid->resetErrorSum();
 	}
 	else if(cmd == "S")
 	{
@@ -132,17 +136,11 @@ void UI::exec(String cmd)
 		m_motor->stop();
 	}
 	else if(cmd == "S2")
-	{
 		m_motor->stop();
-	}
 	else if(cmd == "M")
-	{
 		m_pid->setMag();
-	}
 	else if(cmd == "W")
-	{
 		m_pid->setWind();
-	}
 	else if(cmd.length() > 1)
 	{
 		if(cmd.charAt(0) == 'P') //Parameter
@@ -187,8 +185,6 @@ void UI::exec(String cmd)
 			float value = val.toFloat();
 			m_pid->decrease(value);
 		}
-
-
 	}
 }
 

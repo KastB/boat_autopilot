@@ -149,6 +149,8 @@ void PID::update()
 		m_lastFilteredYaw = filteredYaw;
 		return;
 	}
+	normalize(error);
+	normalize(m_goal);
 
 	if( fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
 		p = m_P2;
@@ -161,7 +163,6 @@ void PID::update()
 	if (increase_error)
 		p = m_P * 1.1f;
 
-	normalize(error);
 	while (error > 180.0f)
 	{
 		error -= 360.0f;
@@ -222,10 +223,17 @@ void PID::toggleState()
 		default: m_goalType = INACTIVE;break;
 	}
 }
+
 void PID::setInactiv()
 {
 	m_goalType = INACTIVE;
 }
+
+void PID::resetErrorSum()
+{
+	m_errorSum = 0.0f;
+}
+
 void PID::increase(int value)
 {
 	if(m_goalType == INACTIVE)
@@ -265,6 +273,7 @@ void PID::normalize(float &angle)
 		angle += 360.0f;
 	}
 }
+
 String PID::debug()
 {
 	return String(m_P) + "\t" + m_I + "\t" + m_D + "\t" + m_goalType + "\t" + m_goal + "\t" + m_lastError + "\t" + m_errorSum + "\t" + m_lastFilteredYaw;

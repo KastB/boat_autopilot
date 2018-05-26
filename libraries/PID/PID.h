@@ -31,6 +31,7 @@ public:
 
 	void toggleState();
 	void setInactiv();
+	void resetErrorSum();
 	void increase(int value);
 	void decrease(int value);
 
