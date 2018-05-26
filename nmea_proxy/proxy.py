@@ -5,25 +5,13 @@ import serial
 import time
 
 from nmea_proxy.servers import TCPServer
+from nmea_proxy.decode_raw_data import decode_data
 
 SERIALPORTIN = "/dev/ttyS22"
-SERIALPORTIN = "/dev/ttyUSB0"
+SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
 TEST = False
 DEBUG = False
-
-HEADER = "Millis,m_currentPosition,m_pressedButtonDebug,m_bytesToSent,CurrentPosition,CurrentDirection,TargetPosition,MSStopped,startButton,stopButton,parkingButton,m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_lastFilteredYaw,UI,yaw,pitch,roll,freq,magMin[0],magMin[1],magMin[2],magMax[0],magMax[1],magMax[2],m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed.waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind.apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth.anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth.depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_depth.unknown,Position"
-
-
-def decode_data(l):
-    dat = l.split("\t")
-    if len(dat) < 2:
-        dat = l.split(",")
-    data = dict()
-    for e, d in zip(HEADER.split(','), dat):
-        data[e] = d
-    return data
-
 
 def new_serial(name, boud):
     ser = serial.Serial(name, boud, rtscts=True, dsrdtr=True)
@@ -49,11 +37,11 @@ def convert_and_send_as_nmea(out, data):
         out.write(pynmea2.HDM('II', 'HDM', (data["yaw"], "M")).render(True, True, True))
         out.write(pynmea2.DPT('II', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
         out.write(pynmea2.MTW('II', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
-        out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        #out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
         out.write(pynmea2.VHW('II', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
 
-        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "PITCH")).render(True, True, True))
-        out.write(pynmea2.XDR('II', 'XDR', ("A", data["roll"], "", "ROLL")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", str(-float(data["roll"])), "", "PITCH")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "ROLL")).render(True, True, True))
 
         angle = str(math.sin(int(data["m_currentPosition"]) / 600))
         out.write(pynmea2.RSA('II', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
@@ -118,7 +106,7 @@ def run():
                     line = fh.readline()
                     time.sleep(1)
                 else:
-                    line = ser_in.readline().decode()
+                    line = ser_in.readline().decode("ASCII")
                 # print(line)
                 data = decode_data(line)
                 # print(data)
@@ -134,7 +122,7 @@ def run():
                 if not TEST:
                     try:
                         for l in ret:
-                            ser_in.write("{}\n".format(l).encode())
+                            ser_in.write("{}\n".format(l).encode("ASCII"))
                     except Exception as e:
                         print(e)
 

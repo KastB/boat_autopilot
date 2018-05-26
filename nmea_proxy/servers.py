@@ -20,7 +20,7 @@ class UDPServer(object):
         self.sock.settimeout(5)
 
     def write(self, msg):
-        self.sock.sendto(msg.encode("utf-8"), (self.ip, self.port))
+        self.sock.sendto(msg.encode("ASCII"), (self.ip, self.port))
 
     def close(self):
         pass
@@ -66,7 +66,7 @@ class TCPServer(object):
         self.release_lock()
         for c in clients:
             try:
-                c.send(msg.encode())
+                c.send(msg.encode("ASCII"))
             except Exception as e:
                 print(e)
                 self.clients.remove(c)
@@ -74,10 +74,9 @@ class TCPServer(object):
 
     def connection_handler(self, client):
         while self.run:
-            msg = client.recv(self.buffer_size).decode()
+            msg = client.recv(self.buffer_size).decode("ASCII")
             if msg == "":
                 break
-            print(msg)
             self.acquire_lock()
             self.out_buffer.append(msg)
             self.release_lock()
