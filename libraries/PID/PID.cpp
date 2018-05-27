@@ -124,23 +124,25 @@ void PID::update()
 	unsigned long currentTime = millis();
 	float error;
 	int position;
-	float roll, pitch, yaw, filteredYaw;
+	float roll, pitch, yaw, filteredYaw, current_direction;
 	boolean increase_error = false;
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
 
 	if(m_goalType == MAGNET)
 	{
-		error = m_goal - yaw;
+		current_direction = yaw;
+		normalize(current_direction);
+		error = m_goal - current_direction;
 	}
 	else if(m_goalType == WIND)
 	{
-		error = m_seatalk->m_wind.apparentAngle - m_goal;
-		//if we are high on the wind and higher -than commanded scale error up
-		if (m_goal < m_closeHauledAngle && m_seatalk->m_wind.apparentAngle < m_goal)
-				increase_error = true;
-		if (m_goal > 360.0f - m_closeHauledAngle && m_seatalk->m_wind.apparentAngle > m_goal)
-			increase_error = true;
+		current_direction = m_seatalk->m_wind.apparentAngle;
+		normalize(current_direction);
+		error = current_direction - m_goal;
 
+		//if we are high on the wind and higher -than commanded scale error up
+		if (fabs(m_goal) < m_closeHauledAngle && fabs(current_direction) < m_goal)
+				increase_error = true;
 	}
 	else
 	{
@@ -150,9 +152,8 @@ void PID::update()
 		return;
 	}
 	normalize(error);
-	normalize(m_goal);
 
-	if( fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
+	if (fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
 		p = m_P2;
 	else if (fabs(error) < 2.0f * m_settled)	// larger P value for unsettled system => faster response
 		p = m_P;
@@ -163,21 +164,13 @@ void PID::update()
 	if (increase_error)
 		p = m_P * 1.1f;
 
-	while (error > 180.0f)
-	{
-		error -= 360.0f;
-	}
-
 	if( currentTime > m_lastTime) //overflow handling
 	{
 		float dt = (currentTime - m_lastTime);
 		dt = dt / 1000.0f;
 
 		float rotVel = (m_lastFilteredYaw - filteredYaw);
-		if(rotVel > 180.0f)
-			rotVel -= 360.0f;
-		if(rotVel < -180.0f)
-			rotVel += 360.0f;
+		normalize(rotVel);
 
 		rotVel /= dt;
 
@@ -264,11 +257,11 @@ void PID::decrease(int value)
 void PID::normalize(float &angle)
 {
 	//normalize
-	while (angle > 360.0f)
+	while (angle > 180.0f)
 	{
 		angle -= 360.0f;
 	}
-	while (angle <= 0.0f)
+	while (angle <= -180.0f)
 	{
 		angle += 360.0f;
 	}
