@@ -11,6 +11,9 @@
 #include <Seatalk.h>
 #include <GPS.h>
 
+#if SERIAL_TX_BUFFER_SIZE < 1024
+	{"Error: TX_Buffersize too small: latencies might occur"}
+#endif
 
 //Connection Handlers
 
@@ -56,7 +59,6 @@ void setup()
 	{
 		Serial.read();
 	}
-
 }
 
 void loop()
