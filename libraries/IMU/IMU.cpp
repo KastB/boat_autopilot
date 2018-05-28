@@ -437,8 +437,8 @@ void IMU::updateRPY()
 	// applied in the correct order which for this configuration is yaw, pitch, and then roll.
 	// For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
 
-	m_roll  = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
-	m_pitch = asin (2.0f * (quat[0] * quat[2] - quat[3] * quat[1]));
+	m_pitch = atan2(2.0f * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0f - 2.0f * (quat[1] * quat[1] + quat[2] * quat[2]));
+	m_roll  = asin (2.0f * (quat[0] * quat[2] - quat[3] * quat[1]));
 	m_yaw   = atan2(2.0f * (quat[0] * quat[3] + quat[1] * quat[2]), 1.0f - 2.0f * (quat[2] * quat[2] + quat[3] * quat[3]));
 
 	m_pitch *= 180.0f / PI;
@@ -453,9 +453,9 @@ String IMU::debug()
 	getRPY(roll, pitch, yaw, filteredYaw);
 	return String(yaw) +
 			"\t" +
-			pitch +
-			"\t" +
 			roll +
+			"\t" +
+			pitch +
 			"\t" +
 			(float)1.0f/deltat +
 
@@ -504,9 +504,9 @@ String IMU::debugHeader()
 {
 	return String("yaw") +
 			"\t" +
-			"pitch" +
-			"\t" +
 			"roll" +
+			"\t" +
+			"pitch" +
 			"\t" +
 			"freq"+
 /*	return String("ax") +
