@@ -10,7 +10,7 @@ from nmea_proxy.decode_raw_data import decode_data
 SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
-TEST = False
+TEST = True
 DEBUG = False
 
 def new_serial(name, boud):
@@ -40,11 +40,11 @@ def convert_and_send_as_nmea(out, data):
         #out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
         out.write(pynmea2.VHW('II', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
 
-        out.write(pynmea2.XDR('II', 'XDR', ("A", str(-float(data["roll"])), "", "PITCH")).render(True, True, True))
-        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "ROLL")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", str(-float(data["roll"])), "", "ROLL")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "PITCH")).render(True, True, True))
 
-        angle = str(math.sin(int(data["m_currentPosition"]) / 600))
-        out.write(pynmea2.RSA('II', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
+        angle = str(float(data["m_currentPosition"]) / 5)
+        out.write(pynmea2.RSA('II', 'RSA', (angle, "A", "0.0", "V")).render(True, True, True))
         position_information = data["Position"].split("##")
         if len(position_information) > 0:
             for p in position_information:
@@ -98,15 +98,17 @@ def run():
     fh = None
     try:
         if TEST:
-            fh = open(str(Path.home()) + "/src/boat_autopilot/data/data.csv")
+            fh = open(str(Path.home()) + "/data/autopilot2018-05-26.log")
         while True:
             try:
                 # get data
                 if TEST:
                     line = fh.readline()
-                    time.sleep(1)
+                    time.sleep(0.1)
                 else:
                     line = ser_in.readline().decode("ASCII")
+                if len(line) == 0:
+                    break
                 # print(line)
                 data = decode_data(line)
                 # print(data)
@@ -114,6 +116,7 @@ def run():
                 out_raw.write(line)
             except Exception as e:
                 print(e)
+                time.sleep(1)
 
 
             ret = out_raw.get_out_buffer() + out_nmea.get_out_buffer()
