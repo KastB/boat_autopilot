@@ -264,5 +264,5 @@ String Motor::debug()
 
 String Motor::debugHeader()
 {
-	return String("CurrentPosition") + "\t" + "CurrentDirection" + "\t" + "TargetPosition" + "\t" + "MSStopped" + "\t" + "startButton" + "\t" + "stopButton" + "\t" + "parkingButton";
+	return F("CurrentPosition\tCurrentDirection\tTargetPosition\tMSStopped\tstartButton\tstopButton\tparkingButton");
 }

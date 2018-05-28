@@ -41,7 +41,7 @@ String TimersClass::debug()
 }
 String TimersClass::debugHeader()
 {
-	String tmp("Millis\t");
+	String tmp(F("Millis\t"));
 	for(int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++)
 	{
 		tmp += m_timers[i]->debugHeader() + "\t";

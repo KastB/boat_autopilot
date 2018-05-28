@@ -280,5 +280,5 @@ String PID::debug()
 }
 String PID::debugHeader()
 {
-	return String("m_P") + "\t" + "m_I" + "\t" + "m_D" + "\t" + "m_goalType" + "\t" + "m_goal" + "\t" + "m_lastError" + "\t" + "m_errorSum" + "\t" + "m_lastFilteredYaw";
+	return F("m_P\tm_I\tm_D\tm_goalType\tm_goal\tm_lastError\tm_errorSum\tm_lastFilteredYaw");
 }

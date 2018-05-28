@@ -107,6 +107,6 @@ String RotaryEncoder::debug()
 
 String RotaryEncoder::debugHeader()
 {
-	return String("m_currentPosition");
+	return String(F("m_currentPosition"));
 	//return String("m_currentPosition") + "\t" + "m_aHigh" + "\t"  + "m_bHigh" + "\t" + "m_voltageA" + "\t" + "m_voltageB";
 }

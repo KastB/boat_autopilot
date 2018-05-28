@@ -219,10 +219,10 @@ void UI::msg_help()
 
 String UI::debug()
 {
-	return "-";
+	return F("-");
 }
 
 String UI::debugHeader()
 {
-	return "UI";
+	return F("UI");
 }

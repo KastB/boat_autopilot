@@ -244,28 +244,10 @@ String Seatalk::debug()
 	m_depth.depthBelowTransductor  + "\t" +
 	m_depth.metricUnits  + "\t" +
 	m_depth.shallowAlarm  + "\t" +
-	m_depth.unknown ;
+	m_depth.unknown;
 }
 
 String Seatalk::debugHeader()
 {
-	return String("m_speed") + "\t" +
-	"m_speed.tripMileage" + "\t" +
-	"m_speed.totalMileage" + "\t" +
-	"m_speed.waterTemp" + "\t" +
-
-	"m_lampIntensity" + "\t" +
-
-	"m_wind.apparentAngle" + "\t" +
-	"m_wind.apparentSpeed" + "\t" +
-	"m_wind.displayInKnots" + "\t" +
-	"m_wind.displayInMpS" + "\t" +
-
-	"m_depth.anchorAlarm"  + "\t" +
-	"m_depth.deepAlarm"  + "\t" +
-	"m_depth.defective"  + "\t" +
-	"m_depth.depthBelowTransductor"  + "\t" +
-	"m_depth.metricUnits"  + "\t" +
-	"m_depth.shallowAlarm"  + "\t" +
-	"m_depth.unknown" ;
+	return F("m_speed\tm_speed.tripMileage\tm_speed.totalMileage\tm_speed.waterTemp\tm_lampIntensity\tm_wind.apparentAngle\tm_wind.apparentSpeed\tm_wind.displayInKnots\tm_wind.displayInMpS\tm_depth.anchorAlarm\tm_depth.deepAlarm\tm_depth.defective\tm_depth.depthBelowTransductor\tm_depth.metricUnits\tm_depth.shallowAlarm\tm_depth.unknown");
 }

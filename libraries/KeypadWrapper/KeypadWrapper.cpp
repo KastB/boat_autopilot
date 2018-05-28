@@ -95,8 +95,8 @@ void KeypadWrapper::update()
 				{
 					switch(m_kpd->key[i].kchar)
 					{
-						case '*':m_cmd = "D1";return;
-						case '#':m_cmd = "I1";return;
+						case '*':m_cmd = "D999";return;
+						case '#':m_cmd = "I999";return;
 						default: break;
 					}
 

@@ -502,50 +502,7 @@ String IMU::debug()
 
 String IMU::debugHeader()
 {
-	return String("yaw") +
-			"\t" +
-			"roll" +
-			"\t" +
-			"pitch" +
-			"\t" +
-			"freq"+
-/*	return String("ax") +
-	"\t" +
-	"ay"  +
-	"\t" +
-	"az"  +
-	"\t" +
-	 "gx" +
-	"\t" +
-	 "gy" +
-	"\t" +
-	 "gz" +
-	"\t" +
-	 "mx" +
-	"\t" +
-	 "my" +
-	"\t" +
-	 "mz" +
-	"\t" +
-	"yaw" +
-	"\t" +
-	"pitch" +
-	"\t" +
-	"roll" +
-	"\t" +
-	"freq" +*/
-	"\t" +
-	"magMin[0]" +
-	"\t" +
-	"magMin[1]" +
-	"\t" +
-	"magMin[2]" +
-	"\t" +
-	"magMax[0]" +
-	"\t" +
-	"magMax[1]" +
-	"\t" +
-	"magMax[2]";
+	return F("yaw\troll\tpitch\tfreq\tmagMin[0]\tmagMin[1]\tmagMin[2]\tmagMax[0]\tmagMax[1]\tmagMax[2]");
 }
 
 void IMU::deleteCalibration()

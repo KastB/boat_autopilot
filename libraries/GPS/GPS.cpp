@@ -56,5 +56,5 @@ String GPS::debug()
 
 String GPS::debugHeader()
 {
-	return "Position";
+	return F("Position");
 }
