@@ -225,29 +225,45 @@ void Seatalk::parseMessage()
 			break;
 	}
 }
-String Seatalk::debug()
+void Seatalk::debug(HardwareSerial& serial)
 {
-	return String(m_speed.speed) + "\t" +
-	m_speed.tripMileage + "\t" +
-	m_speed.totalMileage + "\t" +
-	m_speed.waterTemp + "\t" +
-	m_lampIntensity + "\t" +
+	char spacer = '\t';
+	serial.print(m_speed.speed);
+	serial.print(spacer);
+	serial.print(m_speed.tripMileage);
+	serial.print(spacer);
+	serial.print(m_speed.totalMileage);
+	serial.print(spacer);
+	serial.print(m_speed.waterTemp);
+	serial.print(spacer);
+	serial.print(m_lampIntensity);
+	serial.print(spacer);
 
-	m_wind.apparentAngle + "\t" +
-	m_wind.apparentSpeed + "\t" +
-	m_wind.displayInKnots + "\t" +
-	m_wind.displayInMpS + "\t" +
+	serial.print(m_wind.apparentAngle);
+	serial.print(spacer);
+	serial.print(m_wind.apparentSpeed);
+	serial.print(spacer);
+	serial.print(m_wind.displayInKnots);
+	serial.print(spacer);
+	serial.print(m_wind.displayInMpS);
+	serial.print(spacer);
 
-	m_depth.anchorAlarm  + "\t" +
-	m_depth.deepAlarm  + "\t" +
-	m_depth.defective  + "\t" +
-	m_depth.depthBelowTransductor  + "\t" +
-	m_depth.metricUnits  + "\t" +
-	m_depth.shallowAlarm  + "\t" +
-	m_depth.unknown;
+	serial.print(m_depth.anchorAlarm);
+	serial.print(spacer);
+	serial.print(m_depth.deepAlarm);
+	serial.print(spacer);
+	serial.print(m_depth.defective);
+	serial.print(spacer);
+	serial.print(m_depth.depthBelowTransductor);
+	serial.print(spacer);
+	serial.print(m_depth.metricUnits);
+	serial.print(spacer);
+	serial.print(m_depth.shallowAlarm);
+	serial.print(spacer);
+	serial.print(m_depth.unknown);
 }
 
-String Seatalk::debugHeader()
+void Seatalk::debugHeader(HardwareSerial& serial)
 {
-	return F("m_speed\tm_speed.tripMileage\tm_speed.totalMileage\tm_speed.waterTemp\tm_lampIntensity\tm_wind.apparentAngle\tm_wind.apparentSpeed\tm_wind.displayInKnots\tm_wind.displayInMpS\tm_depth.anchorAlarm\tm_depth.deepAlarm\tm_depth.defective\tm_depth.depthBelowTransductor\tm_depth.metricUnits\tm_depth.shallowAlarm\tm_depth.unknown");
+	serial.print(F("m_speed\tm_speed.tripMileage\tm_speed.totalMileage\tm_speed.waterTemp\tm_lampIntensity\tm_wind.apparentAngle\tm_wind.apparentSpeed\tm_wind.displayInKnots\tm_wind.displayInMpS\tm_depth.anchorAlarm\tm_depth.deepAlarm\tm_depth.defective\tm_depth.depthBelowTransductor\tm_depth.metricUnits\tm_depth.shallowAlarm\tm_depth.unknown"));
 }

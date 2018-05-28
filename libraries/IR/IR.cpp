@@ -9,7 +9,7 @@
 #include "Arduino.h"
 
 
-IR::IR(unsigned long interval, int pin) {
+IR::IR(unsigned long interval) {
 	m_interval = interval;
 	m_initialized = false;
 	m_hold = false;

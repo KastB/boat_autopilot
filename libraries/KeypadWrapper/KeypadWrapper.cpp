@@ -166,11 +166,10 @@ String KeypadWrapper::getCommand()
 	}
 }
 
-String KeypadWrapper::debug()
+void KeypadWrapper::debug(HardwareSerial& serial)
 {
-        return "";
 }
-String KeypadWrapper::debugHeader()
+
+void KeypadWrapper::debugHeader(HardwareSerial& serial)
 {
-        return "";
 }

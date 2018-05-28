@@ -20,8 +20,8 @@ public:
 	UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid, IMU* imu, KeypadWrapper *kpd, TimersClass *timer);
 	virtual ~UI();
 	void update();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 
 private:
 	void msg_help();

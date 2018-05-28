@@ -274,11 +274,28 @@ void PID::normalize(float &angle)
 	}
 }
 
-String PID::debug()
+void PID::debug(HardwareSerial& serial)
 {
-	return String(m_P) + "\t" + m_I + "\t" + m_D + "\t" + m_goalType + "\t" + m_goal + "\t" + m_lastError + "\t" + m_errorSum + "\t" + m_lastFilteredYaw;
+	char spacer = '\t';
+	serial.print(m_P);
+	serial.print(spacer);
+	serial.print(spacer);
+	serial.print(m_I);
+	serial.print(spacer);
+	serial.print(m_D);
+	serial.print(spacer);
+	serial.print(m_goalType);
+	serial.print(spacer);
+	serial.print(m_goal);
+	serial.print(spacer);
+	serial.print(m_lastError);
+	serial.print(spacer);
+	serial.print(m_errorSum);
+	serial.print(spacer);
+	serial.print(m_lastFilteredYaw);
 }
-String PID::debugHeader()
+
+void PID::debugHeader(HardwareSerial& serial)
 {
-	return F("m_P\tm_I\tm_D\tm_goalType\tm_goal\tm_lastError\tm_errorSum\tm_lastFilteredYaw");
+	serial.print("m_P\tm_I\tm_D\tm_goalType\tm_goal\tm_lastError\tm_errorSum\tm_lastFilteredYaw");
 }

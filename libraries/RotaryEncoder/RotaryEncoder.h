@@ -16,8 +16,8 @@ public:
 	void update();
 	int getCurrentPosition();
 	void setCurrentPosition(int pos);
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 private:
 	int m_pinA;
 	int m_pinB;

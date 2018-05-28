@@ -257,12 +257,25 @@ void Motor::update()
 }
 
 
-String Motor::debug()
+void Motor::debug(HardwareSerial& serial)
 {
-	return String(m_rotaryEncoder->getCurrentPosition()) + "\t" + (int)m_currentDirection + "\t" + m_targetPosition + "\t" + m_MSStopped + "\t" + (digitalRead(m_startPin) == LOW) + "\t" + (digitalRead(m_stopPin) == LOW) + "\t" + (digitalRead(m_parkingPin) == LOW);
+	char spacer = '\t';
+	serial.print(m_rotaryEncoder->getCurrentPosition());
+	serial.print(spacer);
+	serial.print((int)m_currentDirection);
+	serial.print(spacer);
+	serial.print(m_targetPosition);
+	serial.print(spacer);
+	serial.print(m_MSStopped);
+	serial.print(spacer);
+	serial.print((digitalRead(m_startPin) == LOW));
+	serial.print(spacer);
+	serial.print((digitalRead(m_stopPin) == LOW));
+	serial.print(spacer);
+	serial.print((digitalRead(m_parkingPin) == LOW));
 }
 
-String Motor::debugHeader()
+void Motor::debugHeader(HardwareSerial& serial)
 {
-	return F("CurrentPosition\tCurrentDirection\tTargetPosition\tMSStopped\tstartButton\tstopButton\tparkingButton");
+	serial.print(F("CurrentPosition\tCurrentDirection\tTargetPosition\tMSStopped\tstartButton\tstopButton\tparkingButton"));
 }

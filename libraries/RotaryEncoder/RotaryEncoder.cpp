@@ -99,14 +99,12 @@ void RotaryEncoder::setCurrentPosition(int pos)
 	m_currentPosition = pos;
 }
 
-String RotaryEncoder::debug()
+void RotaryEncoder::debug(HardwareSerial& serial)
 {
-	return String(m_currentPosition);
-	//return String(m_currentPosition) + "\t" + m_aHigh + "\t"  + m_bHigh + "\t" + m_voltageA + "\t" + m_voltageB;
+	serial.print(m_currentPosition);
 }
 
-String RotaryEncoder::debugHeader()
+void RotaryEncoder::debugHeader(HardwareSerial& serial)
 {
-	return String(F("m_currentPosition"));
-	//return String("m_currentPosition") + "\t" + "m_aHigh" + "\t"  + "m_bHigh" + "\t" + "m_voltageA" + "\t" + "m_voltageB";
+	serial.print(F("m_currentPosition"));
 }

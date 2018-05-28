@@ -14,8 +14,8 @@ public:
 	enum direction {FORWARDS, STOP, BACKWARDS};
 	Motor(unsigned long interval, RotaryEncoder* rotary_encoder, int ina = 3, int inb = 4, int pwm = 7, int diaga = 5, int diagb = 6, int smoothing = 100);
 	virtual ~Motor();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 	void update();
 
 	void gotoPos(int pos);		//+/- range (+ moves to the front => boat goes counterclockwise)

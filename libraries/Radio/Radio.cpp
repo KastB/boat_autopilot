@@ -75,11 +75,14 @@ void Radio::send()
 		m_radio.send(m_bytesToSent, 24);
 	}
 }
-String Radio::debug()
+void Radio::debug(HardwareSerial& serial)
 {
-	return String((int) m_pressedButton)  + "\t" + (int)m_bytesToSent;
+	serial.print((int) m_pressedButton);
+	serial.print("\t");
+	serial.print((int)m_bytesToSent);
 }
-String Radio::debugHeader()
+
+void Radio::debugHeader(HardwareSerial& serial)
 {
-	return String("m_pressedButtonDebug") + "\t" + "m_bytesToSent";
+	serial.print(F("m_pressedButtonDebug\tm_bytesToSent"));
 }

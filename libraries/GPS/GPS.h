@@ -16,8 +16,8 @@ public:
 	GPS(unsigned long interval);
 	virtual ~GPS();
 	void update();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 
 private:
     float m_heading;

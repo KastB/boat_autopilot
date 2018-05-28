@@ -14,7 +14,7 @@
 
 class IR : public TimerClass {
 public:
-	IR(unsigned long interval, int pin);
+	IR(unsigned long interval);
 	virtual ~IR();
 	String debug();
 	String debugHeader();

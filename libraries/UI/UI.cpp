@@ -89,7 +89,7 @@ void UI::update()
 
 	if( m_counter  >= m_debugDevisor)
 	{
-		Serial.println(m_timer->debug());
+		m_timer->debug(Serial);
 		m_counter = 0;
 	}
 	m_counter++;
@@ -217,12 +217,12 @@ void UI::msg_help()
 //Serial1.println(msg);
 }
 
-String UI::debug()
+void UI::debug(HardwareSerial& serial)
 {
-	return F("-");
+	serial.print("-");
 }
 
-String UI::debugHeader()
+void UI::debugHeader(HardwareSerial& serial)
 {
-	return F("UI");
+	serial.print("UI");
 }

@@ -88,8 +88,8 @@ public:
 
 	Seatalk(unsigned long interval);
 	virtual ~Seatalk();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 	void update();
 
 	bool m_debug;

@@ -15,8 +15,8 @@ class KeypadWrapper : public TimerClass {
 public:
 	KeypadWrapper(unsigned long interval);
 	virtual ~KeypadWrapper();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 	void update();
 	String getCommand();
 

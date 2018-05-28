@@ -447,62 +447,35 @@ void IMU::updateRPY()
 
 	m_filteredYaw = m_lowpassFilter->input(m_yaw);
 }
-String IMU::debug()
+void IMU::debug(HardwareSerial& serial)
 {
 	float roll, pitch, yaw, filteredYaw;
+	char spacer = '\t';
 	getRPY(roll, pitch, yaw, filteredYaw);
-	return String(yaw) +
-			"\t" +
-			roll +
-			"\t" +
-			pitch +
-			"\t" +
-			(float)1.0f/deltat +
-
-	/*return String((int)1000*ax) +
-	"\t" +
-	1000*ay +
-	"\t" +
-	1000*az +
-	"\t" +
-	 gx +
-	"\t" +
-	 gy +
-	"\t" +
-	 gz +
-	"\t" +
-	 mx +
-	"\t" +
-	 my +
-	"\t" +
-	 mz +
-	"\t" +
-
-	yaw +
-	"\t" +
-	pitch +
-	"\t" +
-	roll +
-
-	"\t" +
-	(float)1.0f/deltat +*/
-	"\t" +
-	m_calDat.magMin[0] +
-	"\t" +
-	m_calDat.magMin[1] +
-	"\t" +
-	m_calDat.magMin[2] +
-	"\t" +
-	m_calDat.magMax[0] +
-	"\t" +
-	m_calDat.magMax[1] +
-	"\t" +
-	m_calDat.magMax[2];
+	serial.print(yaw);
+	serial.print(spacer);
+	serial.print(roll);
+	serial.print(spacer);
+	serial.print(pitch);
+	serial.print(spacer);
+	serial.print((float)1.0f/deltat);
+	serial.print(spacer);
+	serial.print(m_calDat.magMin[0]);
+	serial.print(spacer);
+	serial.print(m_calDat.magMin[1]);
+	serial.print(spacer);
+	serial.print(m_calDat.magMin[2]);
+	serial.print(spacer);
+	serial.print(m_calDat.magMax[0]);
+	serial.print(spacer);
+	serial.print(m_calDat.magMax[1]);
+	serial.print(spacer);
+	serial.print(m_calDat.magMax[2]);
 }
 
-String IMU::debugHeader()
+void IMU::debugHeader(HardwareSerial& serial)
 {
-	return F("yaw\troll\tpitch\tfreq\tmagMin[0]\tmagMin[1]\tmagMin[2]\tmagMax[0]\tmagMax[1]\tmagMax[2]");
+	serial.print(F("yaw\troll\tpitch\tfreq\tmagMin[0]\tmagMin[1]\tmagMin[2]\tmagMax[0]\tmagMax[1]\tmagMax[2]"));
 }
 
 void IMU::deleteCalibration()

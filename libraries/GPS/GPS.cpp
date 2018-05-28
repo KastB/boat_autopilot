@@ -48,13 +48,12 @@ void GPS::update()
 	}
 }
 
-String GPS::debug()
+void GPS::debug(HardwareSerial& serial)
 {
-	return m_position;
-
+	serial.print(m_position);
 }
 
-String GPS::debugHeader()
+void GPS::debugHeader(HardwareSerial& serial)
 {
-	return F("Position");
+	serial.print(F("Position"));
 }

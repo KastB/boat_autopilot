@@ -29,24 +29,25 @@ void TimersClass::checkAndRunUpdate()
 		m_timers[i]->checkAndRunUpdate();
 	}
 }
-String TimersClass::debug()
+void TimersClass::debug(HardwareSerial& serial)
 {
-	String tmp(millis());
-	tmp += "\t";
+	serial.print(millis());
 	for(int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++)
 	{
-		tmp += m_timers[i]->debug() + "\t";
+		m_timers[i]->debug(serial);
+		serial.print("\t");
 	}
-	return tmp;
+	serial.println("");
 }
-String TimersClass::debugHeader()
+void TimersClass::debugHeader(HardwareSerial& serial)
 {
-	String tmp(F("Millis\t"));
+	serial.print(F("Millis\t"));
 	for(int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++)
 	{
-		tmp += m_timers[i]->debugHeader() + "\t";
+		m_timers[i]->debugHeader(serial);
+		serial.print("\t");
 	}
-	return tmp;
+	serial.println("");
 }
 void TimersClass::addTimer(TimerClass* timer)
 {

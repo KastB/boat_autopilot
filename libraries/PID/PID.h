@@ -17,8 +17,8 @@ class PID : public TimerClass {
 public:
 	PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor);
 	virtual ~PID();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 	void update();
 
 	void setWind(); 			//current

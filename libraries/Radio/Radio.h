@@ -19,8 +19,8 @@ public:
 
 	enum key getLastKey();
 
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 private:
 
 	RCSwitch m_radio;

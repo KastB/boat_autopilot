@@ -54,7 +54,7 @@ void setup()
 	g_timer.addTimer(&g_gps);
 
 	//Headers
-	Serial.println(g_timer.debugHeader());
+	g_timer.debugHeader(Serial);
 	while(Serial.available())
 	{
 		Serial.read();

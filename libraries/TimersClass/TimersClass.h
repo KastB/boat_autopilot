@@ -29,8 +29,8 @@ public:
 		}
 	}
 	virtual void update() = 0;
-	virtual String debug() = 0;
-	virtual String debugHeader() = 0;
+	virtual void debug(HardwareSerial& serial) = 0;
+	virtual void debugHeader(HardwareSerial& serial) = 0;
 	unsigned long m_interval;
 private:
 	unsigned long m_timestamp;
@@ -44,8 +44,8 @@ public:
 	TimersClass();
 	virtual ~TimersClass();
 	void checkAndRunUpdate();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 	void addTimer(TimerClass* timer);
 private:
 	TimerClass* m_timers[MAXTIMERCLASSES];

@@ -71,8 +71,8 @@ public:
 	IMU(unsigned long interval);
 	virtual ~IMU();
 	void update();
-	String debug();
-	String debugHeader();
+	void debug(HardwareSerial& serial);
+	void debugHeader(HardwareSerial& serial);
 	void deleteCalibration();
 	void enableCalibration();
 	void disableCalibration();
