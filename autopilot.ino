@@ -25,7 +25,7 @@ Motor g_motor = Motor(50, &g_rotaryEncoder);             // praktisch nichts
 IMU	g_imu = IMU(20); // laut benchmarks auf https://github.com/kriswiner/MPU6050/wiki/Affordable-9-DoF-Sensor-Fusion ca 5 ms
 Seatalk g_seatalk = Seatalk(20); //needs to be called with correct frequency in order to detect corrupt messages without 9-bit mode (without using command bit)
 GPS g_gps = GPS(200, &Serial);  // kommt erst noch => hoffentlich nahe null
-PID g_pid = PID(500, &g_imu, & g_seatalk, &g_motor); // vernachlässigbar (hoffentlich
+PID g_pid = PID(50, &g_imu, & g_seatalk, &g_motor); // vernachlässigbar (hoffentlich
 KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads
 UI g_ui = UI(25, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); // ~20ms (200 chars über serial1) alle 1s
 
