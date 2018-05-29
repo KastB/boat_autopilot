@@ -92,13 +92,10 @@ void UI::update() {
   m_counter++;
 }
 void UI::exec(String cmd) {
-  //	Serial.println(cmd);
   if (cmd == "?")
-    msg_help();
+    msg_help(Serial);
   else if (cmd == "DELCAL")
     m_imu->deleteCalibration();
-  else if (cmd == "SETROT")
-    m_imu->setCurrentRotationAsRef();
   else if (cmd == "SETROT")
     m_imu->setCurrentRotationAsRef();
   else if (cmd == "DISCAL")
@@ -194,20 +191,26 @@ void UI::setDebugDevisor(int div) {
   }
 }
 
-void UI::msg_help() {
-  String msg =
-      String("?: this help\n\r") + "DELCAL: delete IMU calibration\n\r" +
-      "SETROT: set current rotation as reference\n\r" +
-      "RESETROT: reset current rotation reference\n\r" + "T: tack\n\r" +
-      "I: initialize\n\r" + "RI: reinitialize\n\r" + "S: stop\n\r" +
-      "GP: go parking\n\r" + "M???: set magnet goal\n\r" +
-      "W???: set Wind goal\n\r" + "I???: increase\n\r" + "D???: decrease\n\r" +
-      "R[A-D]: Program Radio-key[A-D]\n\r" +
-      "P[P,I,D,M,R,F,C][-DBL_MAX;DBL_MAX]: set Parameter controller "
-      "(PID-Control-Parameters, Motorposition, debug Rate inverse,lowpassFreq "
-      "imu, pid\n\r";
-  Serial.println(msg);
-  // Serial1.println(msg);
+void UI::msg_help(HardwareSerial &serial) {
+  serial.println(F("?: this help"));
+  serial.println(F("DELCAL: delete IMU calibration"));
+  serial.println(F("SETROT: set current rotation as reference"));
+  serial.println(F("ENCAL: enable calibration"));
+  serial.println(F("DISCAL: disable calibration"));
+  serial.println(F("RESETROT: reset current rotation reference"));
+  serial.println(F("T: tack"));
+  serial.println(F("I: initialize"));
+  serial.println(F("RI: reinitialize"));
+  serial.println(F("S: stop"));
+  serial.println(F("GP: go parking"));
+  serial.println(F("M???: set magnet goal"));
+  serial.println(F("W???: set Wind goal"));
+  serial.println(F("I???: increase"));
+  serial.println(F("D???: decrease"));
+  serial.println(F("R[A-D]: Program Radio-key[A-D]"));
+  serial.print(F("P[P,I,D,M,R,F,C,O][-DBL_MAX;DBL_MAX]: set Parameter controller"));
+  serial.print(F("(PID-control-parameters, motor-position, debug Rate inverse,"));
+  serial.println(F("lowpassFreqOrientation, lowpassFreqMotor, orientation offset"));
 }
 
 void UI::debug(HardwareSerial& serial) { serial.print("-"); }

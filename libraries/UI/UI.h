@@ -24,7 +24,7 @@ class UI : public TimerClass {
   void debugHeader(HardwareSerial &serial);
 
  private:
-  void msg_help();
+  void msg_help(HardwareSerial &serial);
 
   void exec(String cmd);
   void setDebugDevisor(int nterval);
