@@ -48,20 +48,9 @@ void KeypadWrapper::update() {
   if (m_kpd->getKeys()) {
     for (int i = 0; i < LIST_MAX; i++)  // Scan the whole key list.
     {
-      if (m_kpd->key[i]
-              .stateChanged)  // Only find keys that have changed state.
+      // Only find keys that have changed state.
+      if (m_kpd->key[i].stateChanged)
       {
-        /*String msg;
-         switch (m_kpd->key[i].kstate) {  // Report active key state : IDLE,
-         PRESSED, HOLD, or RELEASED case PRESSED: msg = " PRESSED."; break; case
-         HOLD: msg = " HOLD."; break; case RELEASED: msg = " RELEASED."; break;
-                        case IDLE:
-                        msg = " IDLE.";
-                }
-                Serial.print("Key ");
-                Serial.print(m_kpd->key[i].kchar);
-                Serial.println(msg);
-*/
         if (m_kpd->key[i].kstate == HOLD) {
           switch (m_kpd->key[i].kchar) {
             case 'C':
@@ -150,6 +139,10 @@ void KeypadWrapper::update() {
                 break;
             }
           }
+        }
+        // prevent misuse
+        if (m_cmd.length() > 10) {
+          m_cmd = "";
         }
       }
     }

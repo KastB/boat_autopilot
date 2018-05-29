@@ -9,12 +9,10 @@
 #include "Motor.h"
 #include "RotaryEncoder.h"
 
-GPS::GPS(unsigned long interval) {
+GPS::GPS(unsigned long interval, HardwareSerial *serial) {
   m_interval = interval;
-  m_new_position = "";
   m_position = "";
-  m_heading = 0.0f;
-  m_speed = 0.0f;
+  m_serial = serial;
 }
 
 GPS::~GPS() {
@@ -25,20 +23,20 @@ void GPS::update() {
   while (Serial1.available() > 0) {
     char incoming = Serial1.read();
     if (incoming != '\n' && incoming != ' ' && incoming != '\r') {
-      m_new_position += incoming;
+      m_position += incoming;
     } else {
-      if (m_new_position.length() != 0) {
-        if (m_position == "") {
-          m_position = m_new_position;
-        } else {
-          m_position = m_position + "##" + m_new_position;
-        }
-        m_new_position = "";
+      if (m_position.length() != 0) {
+        m_serial->println(m_position);
+        m_position = "";
       }
+    }
+    if(m_position.length() > m_maxLength)
+    {
+      m_position = "";
     }
   }
 }
 
-void GPS::debug(HardwareSerial& serial) { serial.print(m_position); }
+void GPS::debug(HardwareSerial& serial) { serial.print("-"); }
 
-void GPS::debugHeader(HardwareSerial& serial) { serial.print(F("Position")); }
+void GPS::debugHeader(HardwareSerial& serial) { serial.print(F("GPS")); }

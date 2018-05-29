@@ -6,7 +6,6 @@
 
 #ifndef LIBRARIES_TIMER_CLASS_H_
 #define LIBRARIES_TIMER_CLASS_H_
-#include <string.h>
 #include "Arduino.h"
 #define MAXTIMERCLASSES 20
 
@@ -16,7 +15,6 @@ class TimerClass {
   virtual ~TimerClass() = 0;
   void checkAndRunUpdate() {
     if (millis() >= m_timestamp) {
-      // m_timestamp = millis();
       m_timestamp = m_timestamp + m_interval;
       if (millis() >= m_timestamp && m_warnCounter > m_warnReduction) {
         Serial.println("Running out of time!!!");

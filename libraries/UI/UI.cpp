@@ -41,13 +41,16 @@ void UI::update() {
       exec(m_cmdSerial);
       m_cmdSerial = "";
     }
+    // prevent misuse
+    if (m_cmdSerial.length() > 10) {
+      m_cmdSerial = "";
+    }
   }
 
   if (m_ir != NULL) {
     String irCmd = m_ir->getCommand();
     if (irCmd != "") {
       exec(irCmd);
-      //		Serial.println(irCmd);
     }
   }
 

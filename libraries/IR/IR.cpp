@@ -122,6 +122,10 @@ void IR::update() {
             m_cmd += "9";
             break;
         }
+        // prevent misuse
+        if (m_cmd.length() > 10) {
+          m_cmd = "";
+        }
       }
 
       if (m_lastKey != results.value && results.value != HOLD) {

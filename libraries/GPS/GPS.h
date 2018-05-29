@@ -11,19 +11,16 @@
 
 class GPS : public TimerClass {
  public:
-  // enum uiState{NORMAL, MENU, RADIO_CHOOSE, RADIO_SEND, PARAMETER_CHOOSE};
-
-  GPS(unsigned long interval);
+  GPS(unsigned long interval, HardwareSerial *serial);
   virtual ~GPS();
   void update();
   void debug(HardwareSerial& serial);
   void debugHeader(HardwareSerial& serial);
 
  private:
-  float m_heading;
-  float m_speed;
   String m_position;
-  String m_new_position;
+  HardwareSerial *m_serial;
+  static const int m_maxLength = 100;
 };
 
 #endif /* LIBRARIES_GPS_GPS_H_ */
