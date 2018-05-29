@@ -7,55 +7,54 @@
 #ifndef LIBRARIES_IR_H_
 #define LIBRARIES_IR_H_
 
-#include "TimersClass.h"
 #include <IRremote.h>
-
-
+#include "TimersClass.h"
 
 class IR : public TimerClass {
-public:
-	IR(unsigned long interval);
-	virtual ~IR();
-	String debug();
-	String debugHeader();
-	void update();
-	String getCommand();
-private:
-	enum keys : unsigned long{
-		HOLD	= 4294967295,
+ public:
+  IR(unsigned long interval);
+  virtual ~IR();
+  String debug();
+  String debugHeader();
+  void update();
+  String getCommand();
 
-		LEFT	= 16615543,
-		RIGHT	= 16599223,
+ private:
+  enum keys : unsigned long {
+    HOLD = 4294967295,
 
-		TACK	= 16582903,
-		GP		= 16580863,
+    LEFT = 16615543,
+    RIGHT = 16599223,
 
-		MAG		= 16623703,
-		WIND	= 16607383,
+    TACK = 16582903,
+    GP = 16580863,
 
-		ZERO	= 16593103,
-		ONE		= 16597183,
-		TWO		= 16629823,
-		THREE	= 16589023,
-		FOUR	= 16621663,
-		FIVE	= 16605343,
-		SIX		= 16637983,
-		SEVEN	= 16584943,
-		EIGHT	= 16617583,
-		NINE	= 16601263
-	};
+    MAG = 16623703,
+    WIND = 16607383,
 
-    String m_cmd;
+    ZERO = 16593103,
+    ONE = 16597183,
+    TWO = 16629823,
+    THREE = 16589023,
+    FOUR = 16621663,
+    FIVE = 16605343,
+    SIX = 16637983,
+    SEVEN = 16584943,
+    EIGHT = 16617583,
+    NINE = 16601263
+  };
 
-    bool m_initialized;
-    bool m_hold;
-    unsigned long m_lastReceived;
-	unsigned long m_keyReleasedTimeout;
-	unsigned long m_keyHoldTimeout;
-	unsigned long m_keyHoldTime;
+  String m_cmd;
 
-	IRrecv  *m_irrecv;
-	unsigned long m_lastKey;
+  bool m_initialized;
+  bool m_hold;
+  unsigned long m_lastReceived;
+  unsigned long m_keyReleasedTimeout;
+  unsigned long m_keyHoldTimeout;
+  unsigned long m_keyHoldTime;
+
+  IRrecv *m_irrecv;
+  unsigned long m_lastKey;
 };
 
 #endif /* LIBRARIES_IR_H_ */
