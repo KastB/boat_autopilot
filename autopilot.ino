@@ -11,23 +11,23 @@
 #include <PID.h>
 #include <Seatalk.h>
 
-#if SERIAL_TX_BUFFER_SIZE < 1024
+#if SERIAL_TX_BUFFER_SIZE < 512
 { "Error: TX_Buffersize too small: latencies might occur" }
 #endif
 
 // Connection Handlers
 
 TimersClass g_timer;
-Radio g_radio = Radio(50, 0, 10);  // praktisch nichts
+Radio g_radio = Radio(50, 0, 10);
 //IR g_ir =	IR(50, 2);
-RotaryEncoder g_rotaryEncoder = RotaryEncoder(2, 9, 8);  // praktisch nichts
-Motor g_motor = Motor(50, &g_rotaryEncoder);             // praktisch nichts
+RotaryEncoder g_rotaryEncoder = RotaryEncoder(2, 9, 8);
+Motor g_motor = Motor(50, &g_rotaryEncoder);
 IMU	g_imu = IMU(20); // laut benchmarks auf https://github.com/kriswiner/MPU6050/wiki/Affordable-9-DoF-Sensor-Fusion ca 5 ms
-Seatalk g_seatalk = Seatalk(20); //needs to be called with correct frequency in order to detect corrupt messages without 9-bit mode (without using command bit)
-GPS g_gps = GPS(200, &Serial);  // kommt erst noch => hoffentlich nahe null
-PID g_pid = PID(50, &g_imu, & g_seatalk, &g_motor); // vernachlässigbar (hoffentlich
+Seatalk g_seatalk = Seatalk(20); //needs to be called with rather highfrequency in order to detect corrupt messages without 9-bit mode (without using command bit)
+GPS g_gps = GPS(200, &Serial);
+PID g_pid = PID(50, &g_imu, & g_seatalk, &g_motor);
 KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads
-UI g_ui = UI(25, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); // ~20ms (200 chars über serial1) alle 1s
+UI g_ui = UI(25, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer);
 
 void setup() {
   //=> Frequency: 16 000 000/2/1/800=10 000 on Pins 6,7,8 with phase-correct
