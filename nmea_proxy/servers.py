@@ -7,7 +7,6 @@ import socket
 import threading
 import time
 
-
 class UDPServer(object):
     def __init__(self, ip, port, broadcast=False):
         self.port = port
@@ -31,34 +30,45 @@ class TCPServer(object):
         self.buffer_size = 1024
         self.port = port
         self.ip = ip
-        self.run = True
+        global run
+        run = True
 
         self.sock = socket.socket(socket.AF_INET,  # Internet
                                   socket.SOCK_STREAM)  # TCP
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((ip, port))
         self.sock.listen(max_connections)
-        self.sock.settimeout(1)
+        self.timeout = 1
+        self.sock.settimeout(self.timeout)
 
         self.lock = True
-        self.clients = []
         self.out_buffer = []
+
+        self.clients = []
 
         self.client_listener = threading.Thread(
             target=self.listen_for_clients,
         )
         self.client_listener.start()
 
+        self.client_threads = []
+
     def listen_for_clients(self):
-        while self.run:
+        global run
+        while run:
             try:
                 client, address = self.sock.accept()
+                print("new client:")
+                print(address)
             except socket.timeout:
                 continue
+
+            client.settimeout(self.timeout)
             self.acquire_lock()
             self.clients.append(client)
             self.release_lock()
-            threading.Thread(target=self.connection_handler, args=(client,)).start()
+            self.client_threads.append(threading.Thread(target=self.client_handler, args=(client,)))
+            self.client_threads[-1].start()
 
     def write(self, msg):
         self.acquire_lock()
@@ -72,14 +82,19 @@ class TCPServer(object):
                 self.clients.remove(c)
         self.release_lock()
 
-    def connection_handler(self, client):
-        while self.run:
-            msg = client.recv(self.buffer_size).decode("ASCII")
-            if msg == "":
-                break
-            self.acquire_lock()
-            self.out_buffer.append(msg)
-            self.release_lock()
+    def client_handler(self, client):
+        global run
+        while run:
+            try:
+                msg = client.recv(self.buffer_size).decode("ASCII")
+                if msg == "":
+                    break
+                self.acquire_lock()
+                self.out_buffer.append(msg)
+                self.release_lock()
+            except socket.timeout:
+                pass
+        client.close()
 
     def get_out_buffer(self):
         self.acquire_lock()
@@ -89,10 +104,11 @@ class TCPServer(object):
         return out
 
     def close(self):
-        self.run = False
-        self.acquire_lock()
-        for c in self.clients:
-            c.close()
+        global run
+        run = False
+        self.client_listener.join()
+        for ct in self.client_threads:
+            ct.join()
 
     def acquire_lock(self):
         while not self.lock:

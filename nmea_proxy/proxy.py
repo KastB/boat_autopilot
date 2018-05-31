@@ -7,11 +7,15 @@ import time
 from nmea_proxy.servers import TCPServer
 from nmea_proxy.decode_raw_data import decode_data
 
+from threading import Thread
+
 SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
 TEST = True
 DEBUG = False
+global run
+run = True
 
 def new_serial(name, boud):
     ser = serial.Serial(name, boud, rtscts=True, dsrdtr=True)
@@ -86,7 +90,7 @@ def convert_and_send_as_nmea(out, data):
     # TODO: add waypoint handling as backward channel
 
 
-def run():
+def execute():
     ser_in = None
     if not TEST:
         ser_in = new_serial(SERIALPORTIN, BAUDRATEIN)
@@ -96,6 +100,8 @@ def run():
 
     print('Starting Up Serial Monitor')
     fh = None
+    receive_thread = Thread(target=receive_function, args=(out_nmea, out_raw, ser_in,))
+    receive_thread.start()
     try:
         if TEST:
             fh = open(str(Path.home()) + "/data/autopilot2018-05-26.log")
@@ -104,7 +110,7 @@ def run():
                 # get data
                 if TEST:
                     line = fh.readline()
-                    time.sleep(0.1)
+                    time.sleep(1)
                 else:
                     line = ser_in.readline().decode("ASCII")
                 if len(line) == 0:
@@ -118,23 +124,30 @@ def run():
                 print(e)
                 time.sleep(1)
 
-
-            ret = out_raw.get_out_buffer() + out_nmea.get_out_buffer()
-            if len(ret) > 0:
-                print (ret)
-                if not TEST:
-                    try:
-                        for l in ret:
-                            ser_in.write("{}\n".format(l).encode("ASCII"))
-                    except Exception as e:
-                        print(e)
-
     except KeyboardInterrupt:
         print('interrupted!')
+        global run
+        run = False
         out_nmea.close()
         out_raw.close()
+        receive_thread.join()
         if TEST:
             fh.close()
+
+
+def receive_function(out_nmea, out_raw, ser_in):
+    global run
+    while run:
+        ret = out_raw.get_out_buffer() + out_nmea.get_out_buffer()
+        if len(ret) > 0:
+            print(ret)
+            if not TEST:
+                try:
+                    for l in ret:
+                        ser_in.write("{}\n".format(l).encode("ASCII"))
+                except Exception as e:
+                    print(e)
+        time.sleep(0.01)
 
 
 ''''
@@ -240,4 +253,4 @@ class DPT(TalkerSentence):
     )
 '''
 
-run()
+execute()
