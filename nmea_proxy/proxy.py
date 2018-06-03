@@ -45,10 +45,13 @@ def convert_and_send_as_nmea(out, data):
 
         angle = str(math.sin(int(data["m_currentPosition"]) / 600))
         out.write(pynmea2.RSA('II', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
+
+        # Deprecated
         position_information = data["Position"].split("##")
         if len(position_information) > 0:
             for p in position_information:
                 out.write(p)
+
         if DEBUG:
             print("roll:" + data["roll"])
             print("pitch:" + data["pitch"])
@@ -108,9 +111,12 @@ def run():
                 else:
                     line = ser_in.readline().decode("ASCII")
                 # print(line)
-                data = decode_data(line)
-                # print(data)
-                convert_and_send_as_nmea(out_nmea, data)
+                if line.startswith("$"):
+                    out_nmea.write(line)
+                else:
+                    data = decode_data(line)
+                    # print(data)
+                    convert_and_send_as_nmea(out_nmea, data)
                 out_raw.write(line)
             except Exception as e:
                 print(e)
