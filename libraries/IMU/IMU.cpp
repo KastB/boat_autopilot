@@ -493,8 +493,8 @@ void IMU::updateRPY() {
   normalize(m_pitch);
   normalize(m_yaw);
   normalize(m_roll);
-  m_pitch -= 180.0f;
-  m_roll -= 180.0f;
+  m_pitch -= 360.0f;
+  m_roll -= 360.0f;
 
   if (isnan(m_pitch) || isnan(m_yaw) || isnan(m_roll)) {
     initializeImuMeasurements();
