@@ -1,4 +1,5 @@
 #include "FilterOrientation.h"
+#include <math.h>
 
 FilterOrientation::FilterOrientation(FILTER_TYPE ft, float fc,
                                      float initialValue) {
@@ -14,7 +15,8 @@ void FilterOrientation::setToNewValue(float val) {
 
 float FilterOrientation::input(float y) {
   // initialization
-  if (m_lowpassFilter->output() < 0.0) {
+  if (m_lowpassFilter->output() < 0.0f ||
+      isnan(m_lowpassFilter->output())) {
     m_lowpassFilter->setToNewValue(y);
     return y;
   }

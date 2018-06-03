@@ -21,8 +21,8 @@ void TimersClass::checkAndRunUpdate() {
 void TimersClass::debug(HardwareSerial& serial) {
   serial.print(millis());
   for (int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++) {
-    m_timers[i]->debug(serial);
     serial.print("\t");
+    m_timers[i]->debug(serial);
   }
   serial.println("");
 }

@@ -3,14 +3,8 @@
 IMU::IMU(unsigned long interval) {
   m_interval = interval;
   mpu = new MPU6050(0x69);
-  a1 = a2 = a3 = g1 = g2 = g3 = m1 = m2 = m3 = 0;
-  mcount = 0;
-  deltat = 0.0f;
-  lastUpdate = now = 0;
 
-  ax = ay = az = gx = gy = gz = mx = my = mz = 0;
-  q[0] = 1.0f;
-  eInt[0] = eInt[1] = eInt[2] = q[1] = q[2] = q[3] = 0.0f;
+  initializeImuMeasurements();
 
   // filters out changes faster that 0.03 Hz.
   float filterFrequency = 0.03;
@@ -75,6 +69,17 @@ IMU::~IMU() { delete (mpu); }
 
 void IMU::setFilterFrequency(float freq) {
   m_lowpassFilter->setFrequency(freq);
+}
+
+void IMU::initializeImuMeasurements() {
+  a1 = a2 = a3 = g1 = g2 = g3 = m1 = m2 = m3 = 0;
+  mcount = 0;
+  deltat = 0.0f;
+  lastUpdate = now = 0;
+
+  ax = ay = az = gx = gy = gz = mx = my = mz = 0;
+  q[0] = 1.0f;
+  eInt[0] = eInt[1] = eInt[2] = q[1] = q[2] = q[3] = 0.0f;
 }
 
 void IMU::update() {
@@ -426,8 +431,6 @@ void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw) {
   pitch = m_pitch;
   yaw = m_yaw;
   filteredYaw = m_filteredYaw;
-  normalize(m_yaw);
-  normalize(m_filteredYaw);
 }
 
 void IMU::quaternion_product(float *q1, float *q2, float *r)  // w,x,y,z
@@ -487,6 +490,16 @@ void IMU::updateRPY() {
   m_pitch *= 180.0f / PI;
   m_yaw *= 180.0f / PI;
   m_roll *= 180.0f / PI;
+  normalize(m_pitch);
+  normalize(m_yaw);
+  normalize(m_roll);
+  m_pitch -= 180.0f;
+  m_roll -= 180.0f;
+
+  if (isnan(m_pitch) || isnan(m_yaw) || isnan(m_roll)) {
+    initializeImuMeasurements();
+    return;
+  }
 
   m_filteredYaw = m_lowpassFilter->input(m_yaw);
 }

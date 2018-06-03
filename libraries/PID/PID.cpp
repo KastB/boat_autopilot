@@ -110,19 +110,24 @@ void PID::update() {
   unsigned long currentTime = millis();
   float error;
   int position;
-  float roll, pitch, yaw, filteredYaw;
+  float roll, pitch, yaw, filteredYaw, currentDirection;
   boolean increase_error = false;
   m_imu->getRPY(roll, pitch, yaw, filteredYaw);
+  normalize(filteredYaw);
 
   if (m_goalType == MAGNET) {
-    error = m_goal - yaw;
+    currentDirection = yaw;
+    normalize(currentDirection);
+    error = m_goal - currentDirection;
   } else if (m_goalType == WIND) {
-    error = m_seatalk->m_wind.apparentAngle - m_goal;
+    currentDirection = m_seatalk->m_wind.apparentAngle;
+    normalize(currentDirection);
+    error = currentDirection - m_goal;
     // if we are high on the wind and higher -than commanded scale error up
-    if (m_goal < m_closeHauledAngle && m_seatalk->m_wind.apparentAngle < m_goal)
+    if (m_goal < m_closeHauledAngle && currentDirection < m_goal)
       increase_error = true;
     if (m_goal > 360.0f - m_closeHauledAngle &&
-        m_seatalk->m_wind.apparentAngle > m_goal)
+        currentDirection > m_goal)
       increase_error = true;
 
   } else {
@@ -134,12 +139,14 @@ void PID::update() {
   normalize(error);
   normalize(m_goal);
 
-  if (fabs(error) < m_settled)  // smaller P value for settled system => less
-                                // unnecessary rudder movements
+  if (fabs(error) < m_settled) { // smaller P value for settled system => less
+                                 // unnecessary rudder movements
     p = m_P2;
-  else if (fabs(error) < 2.0f * m_settled)  // larger P value for unsettled
-                                            // system => faster response
+  }
+  else if (fabs(error) < 2.0f * m_settled) { // larger P value for unsettled
+                                             // system => faster response
     p = m_P;
+  }
   else  // smooth transition between settled and unsettled system
   {
     p = m_P2 + (m_P - m_P2) / m_settled * (fabs(error) - m_settled);
@@ -238,7 +245,6 @@ void PID::normalize(float &angle) {
 void PID::debug(HardwareSerial &serial) {
   char spacer = '\t';
   serial.print(m_P);
-  serial.print(spacer);
   serial.print(spacer);
   serial.print(m_I);
   serial.print(spacer);

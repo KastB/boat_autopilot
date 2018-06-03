@@ -116,12 +116,14 @@ class IMU : public TimerClass {
   CALLIB_DATA m_calDat;
   unsigned long m_lastCalStore;
 
+  void initializeImuMeasurements();
   void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx,
                                 float gy, float gz, float mx, float my,
                                 float mz);
   void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy,
                               float gz, float mx, float my, float mz);
   void updateRPY();
+
   void quaternion_product(float *q1, float *q2, float *r);  // x,y,z,w
   void quaternion_inverse(float *q, float *i);              // x,y,z,w
   void quaternion_print(float *q);

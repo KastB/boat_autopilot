@@ -24,7 +24,7 @@ UI::UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid,
   m_cmdSerial = "";
   m_cmdKeypad = "";
   m_counter = 0;
-  m_debugDevisor = 20;
+  m_debugDevisor = 10;
 }
 
 UI::~UI() {
