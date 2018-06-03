@@ -21,7 +21,7 @@ def receive():
 def animate(i):
     xs = []
     data_points = []
-    if True:
+    if False:
         data_points = ["magMin[0]",
                        "magMin[1]",
                        "magMin[2]",
@@ -32,6 +32,17 @@ def animate(i):
         data_points = ["yaw",
                        "pitch",
                        "roll"]
+
+    if False:
+        data_points = ["m_speed.tripMileage",
+                       "m_speed.totalMileage"]
+
+    if False:
+        data_points = ["m_depth.defective",
+                       "m_depth.depthBelowTransductor",
+                       "m_depth.metricUnits",
+                       "m_depth.unknown"]
+
     ys = []
     for i in data_points:
         ys.append([])
@@ -47,8 +58,9 @@ def animate(i):
                 continue
             xs.append(x)
     ax1.clear()
-    for y in ys:
-        ax1.plot(xs, y)
+    for y in range(len(ys)):
+        ax1.plot(xs, ys[y], label=data_points[y])
+    ax1.legend()
 
 # ----Now comes the sockets part----
 HOST = "127.0.0.1"
