@@ -5,18 +5,28 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import style
 from nmea_proxy.decode_raw_data import decode_data
+import time
 
 graph_data = []
-run = True
 
+global connected
+global run
+run = True
+connected = False
 
 def receive():
     """Handles receiving of messages."""
+    global run
     while run:
         try:
-            graph_data.append(client_socket.recv(BUFSIZ).decode("ASCII"))
+            data = client_socket.recv(BUFSIZ).decode("ASCII")
+            if len(data) == 0:
+                connected = False
+                time.sleep(1)
+            graph_data.append(data)
         except OSError:  # Possibly client has left the chat.
             break
+
 
 def animate(i):
     xs = []
@@ -71,6 +81,7 @@ ADDR = (HOST, PORT)
 
 client_socket = socket(AF_INET, SOCK_STREAM)
 client_socket.connect(ADDR)
+connected = True
 
 receive_thread = Thread(target=receive)
 receive_thread.start()

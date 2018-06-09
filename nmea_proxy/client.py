@@ -9,6 +9,8 @@ def receive():
     while True:
         try:
             msg = client_socket.recv(BUFSIZ).decode("utf8")
+            if len(msg) == 0:
+                break
             msg_list.insert(0,  msg)
         except OSError:  # Possibly client has left the chat.
             break

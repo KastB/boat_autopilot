@@ -10,21 +10,17 @@
 #include "TimersClass.h"
 
 class GPS : public TimerClass {
-public:
-	//enum uiState{NORMAL, MENU, RADIO_CHOOSE, RADIO_SEND, PARAMETER_CHOOSE};
+ public:
+  GPS(unsigned long interval, HardwareSerial *serial);
+  virtual ~GPS();
+  void update();
+  void debug(HardwareSerial& serial);
+  void debugHeader(HardwareSerial& serial);
 
-	GPS(unsigned long interval);
-	virtual ~GPS();
-	void update();
-	String debug();
-	String debugHeader();
-
-private:
-    float m_heading;
-    float m_speed;
-    String m_position;
-    String m_new_position;
-
+ private:
+  String m_position;
+  HardwareSerial *m_serial;
+  static const int m_maxLength = 100;
 };
 
 #endif /* LIBRARIES_GPS_GPS_H_ */

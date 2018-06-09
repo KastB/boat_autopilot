@@ -7,11 +7,15 @@ import time
 from nmea_proxy.servers import TCPServer
 from nmea_proxy.decode_raw_data import decode_data
 
+from threading import Thread
+
 SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
-TEST = False
+TEST = True
 DEBUG = False
+global run
+run = True
 
 def new_serial(name, boud):
     ser = serial.Serial(name, boud, rtscts=True, dsrdtr=True)
@@ -40,13 +44,11 @@ def convert_and_send_as_nmea(out, data):
         #out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
         out.write(pynmea2.VHW('II', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
 
-        out.write(pynmea2.XDR('II', 'XDR', ("A", str(-float(data["roll"])), "", "PITCH")).render(True, True, True))
-        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "ROLL")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", str(-float(data["roll"])), "", "ROLL")).render(True, True, True))
+        out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "PITCH")).render(True, True, True))
 
-        angle = str(math.sin(int(data["m_currentPosition"]) / 600))
-        out.write(pynmea2.RSA('II', 'RSA', (angle, "R", angle, "R")).render(True, True, True))
-
-        # Deprecated
+        angle = str(float(data["m_currentPosition"]) / 5)
+        out.write(pynmea2.RSA('II', 'RSA', (angle, "A", "0.0", "V")).render(True, True, True))
         position_information = data["Position"].split("##")
         if len(position_information) > 0:
             for p in position_information:
@@ -89,7 +91,7 @@ def convert_and_send_as_nmea(out, data):
     # TODO: add waypoint handling as backward channel
 
 
-def run():
+def execute():
     ser_in = None
     if not TEST:
         ser_in = new_serial(SERIALPORTIN, BAUDRATEIN)
@@ -99,9 +101,11 @@ def run():
 
     print('Starting Up Serial Monitor')
     fh = None
+    receive_thread = Thread(target=receive_function, args=(out_nmea, out_raw, ser_in,))
+    receive_thread.start()
     try:
         if TEST:
-            fh = open(str(Path.home()) + "/src/boat_autopilot/data/data.csv")
+            fh = open(str(Path.home()) + "/data/autopilot2018-05-26.log")
         while True:
             try:
                 # get data
@@ -110,6 +114,8 @@ def run():
                     time.sleep(1)
                 else:
                     line = ser_in.readline().decode("ASCII")
+                if len(line) == 0:
+                    break
                 # print(line)
                 if line.startswith("$"):
                     out_nmea.write(line)
@@ -120,24 +126,32 @@ def run():
                 out_raw.write(line)
             except Exception as e:
                 print(e)
-
-
-            ret = out_raw.get_out_buffer() + out_nmea.get_out_buffer()
-            if len(ret) > 0:
-                print (ret)
-                if not TEST:
-                    try:
-                        for l in ret:
-                            ser_in.write("{}\n".format(l).encode("ASCII"))
-                    except Exception as e:
-                        print(e)
+                time.sleep(1)
 
     except KeyboardInterrupt:
         print('interrupted!')
+        global run
+        run = False
         out_nmea.close()
         out_raw.close()
+        receive_thread.join()
         if TEST:
             fh.close()
+
+
+def receive_function(out_nmea, out_raw, ser_in):
+    global run
+    while run:
+        ret = out_raw.get_out_buffer() + out_nmea.get_out_buffer()
+        if len(ret) > 0:
+            print(ret)
+            if not TEST:
+                try:
+                    for l in ret:
+                        ser_in.write("{}\n".format(l).encode("ASCII"))
+                except Exception as e:
+                    print(e)
+        time.sleep(0.01)
 
 
 ''''
@@ -243,4 +257,4 @@ class DPT(TalkerSentence):
     )
 '''
 
-run()
+execute()

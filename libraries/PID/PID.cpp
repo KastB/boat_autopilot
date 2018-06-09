@@ -18,11 +18,11 @@
  *
  */
 
-#include "PID.h"
 #include "Arduino.h"
+#include "PID.h"
 
-/* TODO: find nicer solution for I - problems (I affects dynamic PID performance negatively,
-		but needs to be rather big when under sail
+/* TODO: find nicer solution for I - problems (I affects dynamic PID performance
+   negatively, but needs to be rather big when under sail
 */
 
 PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
@@ -59,20 +59,14 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_closeHauledAngle = 45.0f;
 }
 
-PID::~PID() {
-}
+PID::~PID() {}
 
-void PID::setFilterFrequency(float freq)
-{
+void PID::setFilterFrequency(float freq) {
 	m_lowpassOutput->setFrequency(freq);
 }
 
-void PID::setWind()
-{
-	setWind(m_seatalk->m_wind.apparentAngle);
-}
-void PID::setWind(float goal)
-{
+void PID::setWind() { setWind(m_seatalk->m_wind.apparentAngle); }
+void PID::setWind(float goal) {
 	m_goal = goal;
 	m_goalType = WIND;
 	normalize(m_goal);
@@ -80,14 +74,12 @@ void PID::setWind(float goal)
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
-void PID::setMag()
-{
+void PID::setMag() {
 	float roll, pitch, yaw, filteredYaw;
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
 	setMag(filteredYaw);
 }
-void PID::setMag(float goal)
-{
+void PID::setMag(float goal) {
 	m_goal = goal;
 	m_goalType = MAGNET;
 	normalize(m_goal);
@@ -95,17 +87,12 @@ void PID::setMag(float goal)
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
-void PID::tack()
-{
-	if(millis() > m_tackStartTime + m_tackMinTime)
-	{
+void PID::tack() {
+  if (millis() > m_tackStartTime + m_tackMinTime) {
 		m_tackStartTime = millis();
-		if(m_goalType == WIND)
-		{
+    if (m_goalType == WIND) {
 			m_goal = -m_goal;
-		}
-		else
-		{
+    } else {
 			m_goal += m_seatalk->m_wind.apparentAngleFiltered->output() * 2.0f;
 		}
 		normalize(m_goal);
@@ -113,8 +100,8 @@ void PID::tack()
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
 
-void PID::update()
-{
+
+void PID::update() {
 	if( m_tackStartTime > millis())	//overflow handling
 	{
 		m_tackStartTime = millis();
@@ -128,8 +115,7 @@ void PID::update()
 	boolean increase_error = false;
 	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
 
-	if(m_goalType == MAGNET)
-	{
+  if (m_goalType == MAGNET) {
 		current_direction = yaw;
 		normalize(current_direction);
 		error = m_goal - current_direction;
@@ -143,9 +129,7 @@ void PID::update()
 		//if we are high on the wind and higher -than commanded scale error up
 		if (fabs(m_goal) < m_closeHauledAngle && fabs(current_direction) < m_goal)
 				increase_error = true;
-	}
-	else
-	{
+	} else {
 		m_lastError = 0.0;
 		m_lastTime = currentTime;
 		m_lastFilteredYaw = filteredYaw;
@@ -153,16 +137,19 @@ void PID::update()
 	}
 	normalize(error);
 
-	if (fabs(error) < m_settled )		// smaller P value for settled system => less unnecessary rudder movements
+  if (fabs(error) < m_settled) { // smaller P value for settled system => less
+                                 // unnecessary rudder movements
 		p = m_P2;
-	else if (fabs(error) < 2.0f * m_settled)	// larger P value for unsettled system => faster response
+  }
+  else if (fabs(error) < 2.0f * m_settled) { // larger P value for unsettled
+                                             // system => faster response
 		p = m_P;
+  }
 	else								// smooth transition between settled and unsettled system
 	{
 		p = m_P2 + (m_P - m_P2) / m_settled * (fabs(error)-m_settled);
 	}
-	if (increase_error)
-		p = m_P * 1.1f;
+	if (increase_error) p = m_P * 1.1f;
 
 	if( currentTime > m_lastTime) //overflow handling
 	{
@@ -174,26 +161,20 @@ void PID::update()
 
 		rotVel /= dt;
 
-		if(currentTime > m_InoUpdate)
-		{
-			if(fabs(rotVel) > m_rotVelDyn || m_motor->getBlocked())
-			{
+    if (currentTime > m_InoUpdate) {
+      if (fabs(rotVel) > m_rotVelDyn || m_motor->getBlocked()) {
 				float tmp = m_errorSum + error * dt;
-				if(fabs(tmp) < fabs(m_errorSum))
-					m_errorSum = tmp;
-			}
-			else
-			{
+        if (fabs(tmp) < fabs(m_errorSum)) m_errorSum = tmp;
+      } else {
 				m_errorSum += error * dt;
 			}
 		}
 
-		if(m_errorSum != m_errorSum)
-			m_errorSum = 0.0;
+    if (m_errorSum != m_errorSum) m_errorSum = 0.0;
 
 		position = 	p * error +
 					//Faster turns should be more damped => quadratic term
-					m_D *  rotVel * fabs(rotVel)+
+					m_D * rotVel * fabs(rotVel) +
 					m_I * m_errorSum;
 
 		//set position
@@ -204,7 +185,6 @@ void PID::update()
 	m_lastError = error;
 	m_lastTime = currentTime;
 }
-
 
 void PID::toggleState()
 {
@@ -217,37 +197,23 @@ void PID::toggleState()
 	}
 }
 
-void PID::setInactiv()
-{
-	m_goalType = INACTIVE;
-}
+void PID::setInactiv() { m_goalType = INACTIVE; }
 
-void PID::resetErrorSum()
-{
-	m_errorSum = 0.0f;
-}
+void PID::resetErrorSum() { m_errorSum = 0.0f; }
 
-void PID::increase(int value)
-{
-	if(m_goalType == INACTIVE)
-	{
+void PID::increase(int value) {
+  if (m_goalType == INACTIVE) {
 		m_motor->moveRel(value);
-	}
-	else
-	{
+  } else {
 		m_goal += value;
 	}
 	normalize(m_goal);
 	m_InoUpdate = millis() + m_iNoUpdateDelay;
 }
-void PID::decrease(int value)
-{
-	if(m_goalType == INACTIVE)
-	{
+void PID::decrease(int value) {
+  if (m_goalType == INACTIVE) {
 		m_motor->moveRel(-value);
-	}
-	else
-	{
+  } else {
 		m_goal -= value;
 	}
 	normalize(m_goal);
@@ -267,11 +233,27 @@ void PID::normalize(float &angle)
 	}
 }
 
-String PID::debug()
-{
-	return String(m_P) + "\t" + m_I + "\t" + m_D + "\t" + m_goalType + "\t" + m_goal + "\t" + m_lastError + "\t" + m_errorSum + "\t" + m_lastFilteredYaw;
+void PID::debug(HardwareSerial &serial) {
+  char spacer = '\t';
+  serial.print(m_P);
+  serial.print(spacer);
+  serial.print(m_I);
+  serial.print(spacer);
+  serial.print(m_D);
+  serial.print(spacer);
+  serial.print(m_goalType);
+  serial.print(spacer);
+  serial.print(m_goal);
+  serial.print(spacer);
+  serial.print(m_lastError);
+  serial.print(spacer);
+  serial.print(m_errorSum);
+  serial.print(spacer);
+  serial.print(m_lastFilteredYaw);
 }
-String PID::debugHeader()
-{
-	return String("m_P") + "\t" + "m_I" + "\t" + "m_D" + "\t" + "m_goalType" + "\t" + "m_goal" + "\t" + "m_lastError" + "\t" + "m_errorSum" + "\t" + "m_lastFilteredYaw";
+
+void PID::debugHeader(HardwareSerial &serial) {
+  serial.print(
+      "m_P\tm_I\tm_D\tm_goalType\tm_goal\tm_lastError\tm_errorSum\tm_"
+      "lastFilteredYaw");
 }

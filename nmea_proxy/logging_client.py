@@ -21,6 +21,12 @@ client_socket.connect(ADDR)
 with open(home + "/data/autopilot{}.log".format(now.strftime("%Y-%m-%d")), "a") as fh:
     try:
         while True:
-            fh.write(client_socket.recv(BUFSIZ).decode("ASCII"))
-    except (OSError,KeyboardInterrupt):
+            data = client_socket.recv(BUFSIZ).decode("ASCII")
+            if len(data) == 0:
+                client_socket = socket(AF_INET, SOCK_STREAM)
+                client_socket.connect(ADDR)
+
+            fh.write(data)
+    except (OSError,KeyboardInterrupt) as e:
+        print(e)
         pass

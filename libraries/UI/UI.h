@@ -6,43 +6,41 @@
 
 #ifndef LIBRARIES_UI_UI_H_
 #define LIBRARIES_UI_UI_H_
-#include <PID.h>
-#include <Motor.h>
-#include <Radio.h>
-#include <IR.h>
-#include "TimersClass.h"
 #include <IMU.h>
+#include <IR.h>
+#include <Motor.h>
+#include <PID.h>
+#include <Radio.h>
 #include "KeypadWrapper.h"
+#include "TimersClass.h"
 
 class UI : public TimerClass {
-public:
+ public:
+  UI(unsigned long interval, IR *ir, Radio *radio, Motor *motor, PID *pid,
+     IMU *imu, KeypadWrapper *kpd, TimersClass *timer);
+  virtual ~UI();
+  void update();
+  void debug(HardwareSerial &serial);
+  void debugHeader(HardwareSerial &serial);
 
-	UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid, IMU* imu, KeypadWrapper *kpd, TimersClass *timer);
-	virtual ~UI();
-	void update();
-	String debug();
-	String debugHeader();
+ private:
+  void msg_help(HardwareSerial &serial);
 
-private:
-	void msg_help();
+  void exec(String cmd);
+  void setDebugDevisor(int nterval);
 
-	void exec(String cmd);
-	void setDebugDevisor(int nterval);
+  String m_cmdSerial;
+  String m_cmdKeypad;
+  int m_debugDevisor;
+  int m_counter;
 
-	String m_cmdSerial;
-	String m_cmdKeypad;
-	int m_debugDevisor;
-	int m_counter;
-
-
-	IR 			*m_ir;
-	Radio		*m_radio;
-	Motor 		*m_motor;
-	PID 		*m_pid;
-	IMU			*m_imu;
-	KeypadWrapper *m_kpd;
-	TimersClass *m_timer;
-
+  IR *m_ir;
+  Radio *m_radio;
+  Motor *m_motor;
+  PID *m_pid;
+  IMU *m_imu;
+  KeypadWrapper *m_kpd;
+  TimersClass *m_timer;
 };
 
 #endif /* LIBRARIES_UI_UI_H_ */

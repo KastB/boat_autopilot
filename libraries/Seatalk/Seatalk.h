@@ -4,19 +4,19 @@
  *  Created on: 25.08.2015
  *  visit http://www.thomasknauf.de/seatalk.htm for more information
  *
- *      ONLY READ - NO SEND OF DATA (Standard Library can't handle 9bit protocol)
- *      9th bit isn't respected => always 0 but the first byte => workaround: start of new message if old message is finished, or timeout is reached
+ *      ONLY READ - NO SEND OF DATA (Standard Library can't handle 9bit
+protocol)
+ *      9th bit isn't respected => always 0 but the first byte => workaround:
+start of new message if old message is finished, or timeout is reached
  *
  *
 
  00  02  YZ  XX XX  Depth below transducer: XXXX/10 feet
                        Flags in Y: Y&8 = 8: Anchor Alarm is active
                                   Y&4 = 4: Metric display units or
-                                           Fathom display units if followed by command 65
-                                  Y&2 = 2: Used, unknown meaning
-                      Flags in Z: Z&4 = 4: Transducer defective
-                                  Z&2 = 2: Deep Alarm is active
-                                  Z&1 = 1: Shallow Depth Alarm is active
+                                           Fathom display units if followed by
+command 65 Y&2 = 2: Used, unknown meaning Flags in Z: Z&4 = 4: Transducer
+defective Z&2 = 2: Deep Alarm is active Z&1 = 1: Shallow Depth Alarm is active
                     Corresponding NMEA sentences: DPT, DBT
 
 
@@ -46,64 +46,61 @@
 
 #ifndef LIBRARIES_SEATALK_H_
 #define LIBRARIES_SEATALK_H_
-#include "TimersClass.h"
 #include "FilterOrientation.h"
+#include "TimersClass.h"
 
-class Seatalk : public TimerClass{
-public:
-	struct depth{
-	 	 bool anchorAlarm;
-	 	 bool metricUnits;
-	 	 bool unknown;
-	 	 bool defective;
-	 	 bool deepAlarm;
-	 	 bool shallowAlarm;
-	 	 float depthBelowTransductor;
-	 };
-	struct wind{
-		float apparentAngle;	//PI +=ccw
-		float apparentSpeed;	//Knots
-		bool displayInKnots;
-		bool displayInMpS;
-		FilterOrientation *apparentAngleFiltered;
-		wind()
-		{
-			apparentAngle = 0.0f;
-			apparentSpeed = 0.0f;
-			displayInKnots = true;
-			displayInMpS = false;
-			apparentAngleFiltered = new FilterOrientation(LOWPASS, 1.0f);
-		}
-		~wind()
-		{
-			delete (apparentAngleFiltered);
-		}
-	};
-	struct speed{
-		float speed;
-		float tripMileage;
-		float totalMileage;
-		float waterTemp;
-	};
+class Seatalk : public TimerClass {
+ public:
+  struct depth {
+    bool anchorAlarm;
+    bool metricUnits;
+    bool unknown;
+    bool defective;
+    bool deepAlarm;
+    bool shallowAlarm;
+    float depthBelowTransductor;
+  };
+  struct wind {
+    float apparentAngle;  // PI +=ccw
+    float apparentSpeed;  // Knots
+    bool displayInKnots;
+    bool displayInMpS;
+    FilterOrientation* apparentAngleFiltered;
+    wind() {
+      apparentAngle = 0.0f;
+      apparentSpeed = 0.0f;
+      displayInKnots = true;
+      displayInMpS = false;
+      apparentAngleFiltered = new FilterOrientation(LOWPASS, 1.0f);
+    }
+    ~wind() { delete (apparentAngleFiltered); }
+  };
+  struct speed {
+    float speed;
+    float tripMileage;
+    float totalMileage;
+    float waterTemp;
+  };
 
-	Seatalk(unsigned long interval);
-	virtual ~Seatalk();
-	String debug();
-	String debugHeader();
-	void update();
+  Seatalk(unsigned long interval);
+  virtual ~Seatalk();
+  void debug(HardwareSerial& serial);
+  void debugHeader(HardwareSerial& serial);
+  void update();
 
-	bool m_debug;
+  bool m_debug;
 
-	wind m_wind;
-	depth m_depth;
-	speed m_speed;
-	short m_lampIntensity;
-private:
-	short m_rawMessage[18];
-	short m_rawReadCount;
+  wind m_wind;
+  depth m_depth;
+  speed m_speed;
+  short m_lampIntensity;
 
-	short expectedMessageLength(short msgID);
-	void parseMessage();
+ private:
+  short m_rawMessage[18];
+  short m_rawReadCount;
+
+  short expectedMessageLength(short msgID);
+  void parseMessage();
 };
 
 #endif /* LIBRARIES_SEATALK_H_ */
