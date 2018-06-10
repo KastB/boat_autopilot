@@ -14,9 +14,20 @@ TimersClass::TimersClass() {
 TimersClass::~TimersClass() {}
 
 void TimersClass::checkAndRunUpdate() {
+  unsigned long start = 0;
   for (int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++) {
+	start = millis();
     m_timers[i]->checkAndRunUpdate();
+
+/*
+    if(millis() - start > 5)
+    {
+    	Serial.print(i);
+    	Serial.print("##");
+    	Serial.println(millis() - start);
+    }*/
   }
+
 }
 void TimersClass::debug(HardwareSerial& serial) {
   serial.print(millis());
