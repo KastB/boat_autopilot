@@ -606,7 +606,9 @@ class MPU6050 {
         int16_t getRotationZ();
 
         // MAG_*OUT_* registers
-        void getMag(int16_t* x, int16_t* y, int16_t* z);
+        void getMagBlocking(int16_t* x, int16_t* y, int16_t* z);
+        void enablePassthrough();
+        void magTriggerMeasurement();
 
         // EXT_SENS_DATA_* registers
         uint8_t getExternalSensorByte(int position);
@@ -996,6 +998,8 @@ class MPU6050 {
             void dmpOverrideQuaternion(long *q);
             uint16_t dmpGetFIFOPacketSize();
         #endif
+
+	void getMag(int16_t* mx, int16_t* my, int16_t* mz);
 
     private:
         uint8_t devAddr;

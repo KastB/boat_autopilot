@@ -112,14 +112,23 @@ void IMU::update() {
      *Don't forget that for the MPU9150, the magnetometer x- and y-axes are
      *switched compared to the gyro and accelerometer!
      */
-
-    if (mcount > MagRateDivisor) {  // this is a poor man's way of setting the
-                                    // magnetometer read rate (see below)
+    // this is a poor man's way of setting the magnetometer read rate
+    // should be at most every 10ms
+    // TODO: this is a pretty ugly hack: the normal "getMag" was renamed to
+    // getMagBlocking, as it hat two 10ms sleeps that messed up the real time thing
+    // this was split up to three non blocking methods, that are called in succeeding
+    // cycles. cycle time must not be reduced below 10ms
+    // if cycle time is larger than 10ms older mag data will be used
+    // I have no idea what happens with the gyro and acc reads during the passthrough
+    // enabled mode => is this a problem?? Seemingly not
+    if (mcount + 2 > MagRateDivisor){
+    	mpu->enablePassthrough();
+    }
+    if (mcount + 1 > MagRateDivisor) {
+    	mpu->magTriggerMeasurement();
+    }
+    if (mcount > MagRateDivisor) {
       mpu->getMag(&m1, &m2, &m3);
-      /*	mx = m1*10.0f*1229.0f/4096.0f; // milliGauss (1229 microTesla
-         per 2^12 bits, 10 mG per microTesla) my = m2*10.0f*1229.0f/4096.0f; //
-         apply calibration offsets in mG that correspond to your environment and
-         magnetometer mz = m3*10.0f*1229.0f/4096.0f;*/
 
       if (m_enableCalibration) {
         if (m1 > m_calDat.magMax[0]) {
@@ -146,7 +155,6 @@ void IMU::update() {
           m_calDat.magMin[2] = m3;
           m_calDat.magValid = true;
         }
-
         storeCalibration();
       }
 
@@ -493,8 +501,10 @@ void IMU::updateRPY() {
   normalize(m_pitch);
   normalize(m_yaw);
   normalize(m_roll);
-  m_pitch -= 360.0f;
-  m_roll -= 360.0f;
+  if (m_pitch > 180.0f)
+	m_pitch -= 360.0f;
+  if (m_roll > 180.0f)
+	  m_roll -= 360.0f;
 
   if (isnan(m_pitch) || isnan(m_yaw) || isnan(m_roll)) {
     initializeImuMeasurements();
