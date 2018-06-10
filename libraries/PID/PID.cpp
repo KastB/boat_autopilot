@@ -222,15 +222,13 @@ void PID::decrease(int value) {
 
 void PID::normalize(float &angle)
 {
-	//normalize
-	while (angle > 180.0f)
-	{
-		angle -= 360.0f;
-	}
-	while (angle <= -180.0f)
-	{
-		angle += 360.0f;
-	}
+  //normalize
+  while (angle > 180.0f) {
+	angle -= 360.0f;
+  }
+  while (angle <= -180.0f) {
+	angle += 360.0f;
+  }
 }
 
 void PID::debug(HardwareSerial &serial) {
