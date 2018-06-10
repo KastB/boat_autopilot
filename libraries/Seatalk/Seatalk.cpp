@@ -53,7 +53,7 @@ void Seatalk::update() {
       if (expectedMessageLength(m_rawMessage[0]) == expectedMsgLength)  // parse
       {
         // everything is ok
-        parseMessage();
+        parseMessage(expectedMsgLength);
       } else  // print and debug
       {
         if (expectedMsgLength > 15) {
@@ -123,7 +123,7 @@ short Seatalk::expectedMessageLength(short msgID) {
   }
 }
 
-void Seatalk::parseMessage() {
+void Seatalk::parseMessage(int expectedMsgLength) {
   switch (m_rawMessage[0]) {
       /*
               00  02  YZ  XX XX  Depth below transducer: XXXX/10 feet
@@ -150,8 +150,11 @@ void Seatalk::parseMessage() {
          (WindTrim) Corresponding NMEA sentence: MWV
       */
     case 0x10:
-      m_wind.apparentAngle =
-          ((float)m_rawMessage[2] * 256 + m_rawMessage[3]) / 2.0;
+      float angle;
+      //prevent wrong measurements
+      float delta;
+      angle = ((float)m_rawMessage[2] * 256 + m_rawMessage[3]) / 2.0;
+   	  m_wind.apparentAngle = angle;
       m_wind.apparentAngleFiltered->input(m_wind.apparentAngle);
       break;
       /*
@@ -242,8 +245,26 @@ void Seatalk::parseMessage() {
           break;
       }
       break;
+    default:
+      Serial.println("#########################");
+      Serial.println(expectedMsgLength);
+      for (int i = 0; i < expectedMsgLength; i++) {
+        Serial.println(m_rawMessage[i]);
+      }
   }
 }
+
+void Seatalk::normalize(float &angle)
+{
+  //normalize
+  while (angle > 180.0f) {
+	angle -= 360.0f;
+  }
+  while (angle <= -180.0f) {
+	angle += 360.0f;
+  }
+}
+
 void Seatalk::debug(HardwareSerial& serial) {
   char spacer = '\t';
   serial.print(m_speed.speed);

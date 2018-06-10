@@ -75,7 +75,7 @@ class Seatalk : public TimerClass {
     }
     ~wind() { delete (apparentAngleFiltered); }
   };
-  struct speed {
+  struct log {
     float speed;
     float tripMileage;
     float totalMileage;
@@ -92,7 +92,7 @@ class Seatalk : public TimerClass {
 
   wind m_wind;
   depth m_depth;
-  speed m_speed;
+  log m_speed;
   short m_lampIntensity;
 
  private:
@@ -100,7 +100,8 @@ class Seatalk : public TimerClass {
   short m_rawReadCount;
 
   short expectedMessageLength(short msgID);
-  void parseMessage();
+  void parseMessage(int expectedMsgLength);
+  void normalize(float &angle);
 };
 
 #endif /* LIBRARIES_SEATALK_H_ */
