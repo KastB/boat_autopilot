@@ -20,7 +20,8 @@
 #include <Seatalk.h>
 
 #if SERIAL_TX_BUFFER_SIZE < 512
-{ "Error: TX_Buffersize too small: latencies might occur" }
+{ "Error: TX_Buffersize too small: latencies might occur"
+  "Add -DSERIAL_TX_BUFFER_SIZE=512 to the build parameters"}
 #endif
 
 // Connection Handlers
@@ -30,7 +31,7 @@ Radio g_radio = Radio(50, 0, 10);
 //IR g_ir =	IR(50, 2);
 RotaryEncoder g_rotaryEncoder = RotaryEncoder(2, 9, 8);
 Motor g_motor = Motor(50, &g_rotaryEncoder);
-IMU	g_imu = IMU(20); // laut benchmarks auf https://github.com/kriswiner/MPU6050/wiki/Affordable-9-DoF-Sensor-Fusion ca 5 ms
+IMU	g_imu = IMU(20); // 7ms, every 10th 27 when getMagBlocking is used
 Seatalk g_seatalk = Seatalk(20); //needs to be called with rather highfrequency in order to detect corrupt messages without 9-bit mode (without using command bit)
 GPS g_gps = GPS(10, &Serial);
 PID g_pid = PID(500, &g_imu, & g_seatalk, &g_motor);
