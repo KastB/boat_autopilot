@@ -20,6 +20,9 @@ class TimerClass {
         Serial.println("Running out of time!!!");
         m_warnCounter = 0;
       }
+      if (millis() < m_timestamp) {
+    	  m_warnCounter = 0;
+      }
       update();
     }
   }
@@ -30,7 +33,7 @@ class TimerClass {
 
  private:
   unsigned long m_timestamp;
-  const unsigned int m_warnReduction = 100;
+  const unsigned int m_warnReduction = 1;
   unsigned int m_warnCounter = 0;
   friend class TimersClass;
 };

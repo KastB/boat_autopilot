@@ -18,14 +18,14 @@ void TimersClass::checkAndRunUpdate() {
   for (int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++) {
 	start = millis();
     m_timers[i]->checkAndRunUpdate();
-
-/*
-    if(millis() - start > 5)
+    /*
+    if(millis() - start > 8)
     {
     	Serial.print(i);
     	Serial.print("##");
     	Serial.println(millis() - start);
-    }*/
+    }
+    */
   }
 
 }
