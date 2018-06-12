@@ -190,8 +190,8 @@ void Seatalk::parseMessage(int expectedMsgLength) {
                       Serial.println(m_rawMessage[3], BIN);
                       Serial.println(m_rawMessage[2], BIN);*/
       m_speed.tripMileage = ((float)(m_rawMessage[4] & 0x0F) * (2 ^ 16) +
-                             m_rawMessage[3] * (2 ^ 8) + m_rawMessage[2]) /
-                            100.0f;
+    		  	  	  	  	 (float) m_rawMessage[3] * (2 ^ 8) +
+							 (float) m_rawMessage[2]) / 100.0f;
       break;
       /*
        *  22  02  XX  XX  00  Total Mileage: XXXX/10 nautical miles
@@ -207,8 +207,8 @@ void Seatalk::parseMessage(int expectedMsgLength) {
                       Serial.println(m_rawMessage[2], BIN);*/
       m_speed.totalMileage = m_speed.tripMileage =
           ((float)(m_rawMessage[4] & 0x0F) * (2 ^ 16) +
-           m_rawMessage[3] * (2 ^ 8) + m_rawMessage[2]) /
-          10.0f;
+		   (float) m_rawMessage[3] * (2 ^ 8) +
+		   (float) m_rawMessage[2]) / 10.0f;
       break;
       /*
        *  23  Z1  XX  YY  Water temperature (ST50): XX deg Celsius, YY deg

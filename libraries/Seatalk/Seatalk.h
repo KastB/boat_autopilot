@@ -93,11 +93,11 @@ class Seatalk : public TimerClass {
   wind m_wind;
   depth m_depth;
   log m_speed;
-  short m_lampIntensity;
+  unsigned char m_lampIntensity;
 
  private:
-  short m_rawMessage[18];
-  short m_rawReadCount;
+  unsigned char m_rawMessage[18];
+  unsigned char m_rawReadCount;
 
   short expectedMessageLength(short msgID);
   void parseMessage(int expectedMsgLength);
