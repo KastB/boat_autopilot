@@ -2,6 +2,7 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 import matplotlib.animation as animation
 from matplotlib import style
 from nmea_proxy.decode_raw_data import decode_data
@@ -42,8 +43,10 @@ def animate(i):
         data_points = ["yaw",
                        "pitch",
                        "roll"]
-
     if False:
+        data_points = ["freq"]
+
+    if True:
         data_points = ["m_speed.tripMileage",
                        "m_speed.totalMileage"]
 
@@ -52,6 +55,9 @@ def animate(i):
                        "m_depth.depthBelowTransductor",
                        "m_depth.metricUnits",
                        "m_depth.unknown"]
+    if True:
+        data_points = ["m_wind.apparentAngle"]
+
 
     ys = []
     for i in data_points:
@@ -71,6 +77,7 @@ def animate(i):
     for y in range(len(ys)):
         ax1.plot(xs, ys[y], label=data_points[y])
     ax1.legend()
+    # ax1.set_ylim(bottom=-10, top=10)
 
 # ----Now comes the sockets part----
 HOST = "127.0.0.1"
@@ -87,12 +94,13 @@ receive_thread = Thread(target=receive)
 receive_thread.start()
 
 
-style.use('fivethirtyeight')
+# style.use('fivethirtyeight')
 
 fig = plt.figure()
 ax1 = fig.add_subplot(1,1,1)
 
 ani = animation.FuncAnimation(fig, animate, interval=100)
 plt.show()
+
 
 run = False
