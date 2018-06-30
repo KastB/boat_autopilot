@@ -104,14 +104,12 @@ void Motor::motor_stop() {
 }
 
 void Motor::controlMotor(direction dir, int speed, bool overwrite) {
-  if (abs(m_currentDirection - dir) >
-          (unsigned int)1 ||  // stop when switching from forward to backward
-      (m_MSStopped > 0 &&
-       millis() < m_minStopMS +
-                      m_MSStopped) ||  // minimal stop criterium not fulfilled
+  if (abs(m_currentDirection - dir) > 1 ||  // stop when switching from forward to backward
+      (m_MSStopped > 0 && millis() < m_minStopMS + m_MSStopped) ||  // minimal stop criteria not fulfilled
       dir == STOP) {
     motor_stop();
-    if (m_MSStopped == 0) m_MSStopped = millis();
+    if (m_MSStopped < millis())
+      m_MSStopped = millis();
   } else {
     m_MSStopped = 0;
     if (dir == BACKWARDS) {
@@ -141,7 +139,8 @@ int Motor::getCurrentPosition() {
 }
 
 void Motor::update() {
-  if (m_initLastCommand > millis()) m_initLastCommand = millis();
+  if (m_initLastCommand > millis())
+    m_initLastCommand = millis();
   if (m_initLastCommand + m_initMinTime < millis()) {
     m_initLastCommand = millis();
     // Serial.println(m_initStatus);
