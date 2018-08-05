@@ -32,7 +32,7 @@ Radio g_radio = Radio(50, 0, 10);
 RotaryEncoder g_rotaryEncoder = RotaryEncoder(2, 9, 8);
 Motor g_motor = Motor(50, &g_rotaryEncoder);
 IMU	g_imu = IMU(20); // 7-11ms, every 10th 27 when getMagBlocking is used
-Seatalk g_seatalk = Seatalk(20); //needs to be called with rather highfrequency in order to detect corrupt messages without 9-bit mode (without using command bit)
+Seatalk g_seatalk = Seatalk(5); //needs to be called with rather high frequency in order to detect corrupt messages without 9-bit mode (without using command bit)
 GPS g_gps = GPS(10, &Serial);
 PID g_pid = PID(500, &g_imu, & g_seatalk, &g_motor);
 KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads

@@ -99,9 +99,14 @@ class Seatalk : public TimerClass {
   unsigned char m_rawMessage[18];
   unsigned char m_rawReadCount;
 
+  float m_lastDataRead;
+  int m_bufferPosition;
+
   short expectedMessageLength(short msgID);
   void parseMessage(int expectedMsgLength);
   void normalize(float &angle);
+  void resetBuffer();
+  void shiftBuffer(short expectedMsgLength);
 };
 
 #endif /* LIBRARIES_SEATALK_H_ */

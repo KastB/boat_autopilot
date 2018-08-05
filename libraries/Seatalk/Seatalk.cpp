@@ -24,68 +24,90 @@ Seatalk::Seatalk(unsigned long interval) {
   m_depth.unknown = false;
 
   m_debug = false;
+  m_lastDataRead = 0.0;
+  m_bufferPosition = 0;
 }
 
 Seatalk::~Seatalk() {}
 
+void Seatalk::resetBuffer() {
+  m_rawReadCount = 0;
+  m_rawMessage[0] = 0;
+  m_rawMessage[1] = 0;
+  m_rawMessage[2] = 0;
+  m_rawMessage[3] = 0;
+  m_rawMessage[4] = 0;
+  m_rawMessage[5] = 0;
+}
+
+
+
+void Seatalk::shiftBuffer(short expectedMsgLength) {
+#ifdef DEBUGING
+  Serial.println("shifting");
+  Serial.println(m_rawReadCount);
+  Serial.println(expectedMsgLength);
+  for(int z = 0; z < 10; z++) {
+        Serial.print(m_rawMessage[z]);
+        Serial.print("-");
+  }
+#endif
+  for(short i = expectedMsgLength; i < m_rawReadCount; i++) {
+    m_rawMessage[i - expectedMsgLength] = m_rawMessage[i];
+  }
+  /*
+  for(short i = m_rawReadCount - expectedMsgLength; i < 6; i++) { // TODO: remove magic numbers
+      m_rawMessage[i] = 0;
+  } */
+  m_rawReadCount -= expectedMsgLength;
+#ifdef DEBUGING
+  Serial.println("mid_shift");
+  for(int z = 0; z < 10; z++) {
+      Serial.print(m_rawMessage[z]);
+      Serial.print("-");
+  }
+  Serial.println("end_shift");
+  Serial.println(m_rawReadCount);
+#endif
+}
+
 void Seatalk::update() {
   short expectedMsgLength = -1;
-  if (!Serial2.available())  // no Data since last check => next time a new
-                             // message begins
-  {
-    m_rawReadCount = 0;
-    m_rawMessage[0] = 0;
-    m_rawMessage[1] = 0;
-    m_rawMessage[2] = 0;
-    m_rawMessage[3] = 0;
-    m_rawMessage[4] = 0;
-    m_rawMessage[5] = 0;
-  }
+  //if (millis() - m_lastDataRead > 10)  // no Data since "long" time=> next time a new message begins
+  //  resetBuffer();
+
   while (Serial2.available())  // There is something to be read
   {
     m_rawMessage[m_rawReadCount] = Serial2.read();
     m_rawReadCount++;
-    if (m_rawReadCount > 2)  // minimum length == 3
-    {
-      // determine expected length of current message
-
-      expectedMsgLength = (m_rawMessage[1] & 0x0F);
-      if (expectedMessageLength(m_rawMessage[0]) == expectedMsgLength)  // parse
-      {
-        // everything is ok
-        parseMessage(expectedMsgLength);
-      } else  // print and debug
-      {
-        if (expectedMsgLength > 15) {
-          expectedMsgLength = 0;
-        }
-        if (m_debug) {
-          if (expectedMsgLength > 15) {
-            Serial.println("Message is corrupt");
-          } else if (expectedMessageLength(m_rawMessage[0]) == -1) {
-            Serial.println("New Message Type received or Message corrupt");
-          } else if (expectedMessageLength(m_rawMessage[0]) != -1) {
-            Serial.println("Perhaps there is some coding in that message");
-          }
-          if (m_rawReadCount == 3) {
-            Serial.print("Seatalk:0:");
-            Serial.println(m_rawMessage[0], HEX);
-            Serial.print("Seatalk:1:");
-            Serial.println(m_rawMessage[1], HEX);
-          }
-          Serial.print("Seatalk:");
-          Serial.print(m_rawReadCount - 1);
-          Serial.print(":");
-          Serial.println(m_rawMessage[m_rawReadCount - 1], HEX);
-        }
-      }
-
-      if (m_rawReadCount == expectedMsgLength ||
-          m_rawReadCount == 18)  // all needed Data received => process message
-      {
-        m_rawReadCount = 0;
-      }
+    if (m_rawReadCount > 16) {
+      break;
     }
+  }
+  while(m_rawReadCount > 2) {
+      // determine expected length of current message
+      expectedMsgLength = (m_rawMessage[1] & 0x0F);
+      if (expectedMessageLength(m_rawMessage[0]) != expectedMsgLength) { // not a valid message
+#ifdef DEBUGING
+        Serial.println("corrupt message");
+        Serial.println(m_rawMessage[0]);
+        Serial.println(expectedMsgLength);
+        Serial.println(m_rawReadCount);
+#endif
+        shiftBuffer(1);
+        continue;
+      }
+      if (m_rawReadCount < expectedMsgLength + 3) { // +3 => header(id, length, first data block)  too short => wait for more data
+        break;
+      }
+      // everything is ok
+      parseMessage(expectedMsgLength);
+#ifdef DEBUGING
+      Serial.println("received");
+      Serial.println((int)m_rawMessage[0], HEX);
+      Serial.println("received_end");
+#endif
+      shiftBuffer(expectedMsgLength + 3);// +3 => header(id, length, first data block)
   }
 }
 
@@ -190,8 +212,9 @@ void Seatalk::parseMessage(int expectedMsgLength) {
                       Serial.println(m_rawMessage[3], BIN);
                       Serial.println(m_rawMessage[2], BIN);*/
       m_speed.tripMileage = ((float)(m_rawMessage[4] & 0x0F) * (2 ^ 16) +
-    		  	  	  	  	 (float) m_rawMessage[3] * (2 ^ 8) +
-							 (float) m_rawMessage[2]) / 100.0f;
+    		  	  	  	  	     (float) m_rawMessage[3] * (2 ^ 8) +
+    		  	  	  	  	     (float) m_rawMessage[2]) / 100.0f;
+      //m_speed.tripMileage = m_rawMessage[2];
       break;
       /*
        *  22  02  XX  XX  00  Total Mileage: XXXX/10 nautical miles
@@ -205,7 +228,7 @@ void Seatalk::parseMessage(int expectedMsgLength) {
                       Serial.println(m_rawMessage[4], BIN);
                       Serial.println(m_rawMessage[3], BIN);
                       Serial.println(m_rawMessage[2], BIN);*/
-      m_speed.totalMileage = m_speed.tripMileage =
+      m_speed.totalMileage =
           ((float)(m_rawMessage[4] & 0x0F) * (2 ^ 16) +
 		   (float) m_rawMessage[3] * (2 ^ 8) +
 		   (float) m_rawMessage[2]) / 10.0f;
