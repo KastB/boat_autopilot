@@ -97,6 +97,7 @@ void Motor::motor_ccw(int speed) {
 }
 
 void Motor::motor_stop() {
+  // Serial.println("stop");
   m_targetPosition = m_rotaryEncoder->getCurrentPosition();
   digitalWrite(m_inaPin, LOW);
   digitalWrite(m_inbPin, LOW);
@@ -104,11 +105,12 @@ void Motor::motor_stop() {
 }
 
 void Motor::controlMotor(direction dir, int speed, bool overwrite) {
+  // Serial.println(String("CM") + dir + "##" + speed + "##" + overwrite);
   if (abs(m_currentDirection - dir) > 1 ||  // stop when switching from forward to backward
       (m_MSStopped > 0 && millis() < m_minStopMS + m_MSStopped) ||  // minimal stop criteria not fulfilled
       dir == STOP) {
     motor_stop();
-    if (m_MSStopped < millis())
+    if (m_MSStopped == 0)       //TODO: proper overflow handling
       m_MSStopped = millis();
   } else {
     m_MSStopped = 0;
@@ -116,6 +118,7 @@ void Motor::controlMotor(direction dir, int speed, bool overwrite) {
       if (digitalRead(m_stopPin) == LOW) {
         motor_cw(speed);
       } else {
+        // Serial.print("b");
         motor_stop();
       }
     } else {
@@ -123,6 +126,7 @@ void Motor::controlMotor(direction dir, int speed, bool overwrite) {
           digitalRead(m_parkingPin) == LOW) {
         motor_ccw(speed);
       } else {
+        // Serial.print("c");
         motor_stop();
       }
     }
@@ -217,10 +221,14 @@ void Motor::debug(HardwareSerial& serial) {
   serial.print((digitalRead(m_stopPin) == LOW));
   serial.print(spacer);
   serial.print((digitalRead(m_parkingPin) == LOW));
+  serial.print(spacer);
+  serial.print((digitalRead(m_diagaPin) == LOW));
+  serial.print(spacer);
+  serial.print((digitalRead(m_diagbPin) == LOW));
 }
 
 void Motor::debugHeader(HardwareSerial& serial) {
   serial.print(
       F("CurrentPosition\tCurrentDirection\tTargetPosition\tMSStopped\tstartBut"
-        "ton\tstopButton\tparkingButton"));
+        "ton\tstopButton\tparkingButton\tDiagA\tDiagB"));
 }
