@@ -42,7 +42,7 @@ void UI::update() {
       m_cmdSerial = "";
     }
     // prevent misuse
-    if (m_cmdSerial.length() > 10) {
+    if (m_cmdSerial.length() > 60) {
       m_cmdSerial = "";
     }
   }
@@ -184,6 +184,27 @@ void UI::exec(String cmd) {
       String val = cmd.substring(1);
       float value = val.toFloat();
       m_pid->decrease(value);
+    } else if (cmd.charAt(0) == 'C') // set calibration data for imu
+    {
+    	Serial.println("starting");
+    	float values[6];
+    	int index = 0;
+    	int start = 1;
+    	for(unsigned int end = 2; end < cmd.length(); end++)
+    	{
+    		if(cmd.charAt(end) == ',') {
+    			Serial.println(cmd.substring(start, end));
+    			values[index] = cmd.substring(start, end).toFloat();
+    			Serial.println(values[index]);
+    			index++;
+    			start = end+1;
+    		}
+    	}
+    	Serial.println(index);
+
+    	if (index == 6)
+    		Serial.println("setting");
+    		m_imu->setMinMaxCalDat(values, values+3);
     }
   }
 }
@@ -214,6 +235,7 @@ void UI::msg_help(HardwareSerial &serial) {
   serial.print(F("P[P,I,D,M,R,F,C,O][-DBL_MAX;DBL_MAX]: set Parameter controller"));
   serial.print(F("(PID-control-parameters, motor-position, debug Rate inverse,"));
   serial.println(F("lowpassFreqOrientation, lowpassFreqMotor, orientation offset"));
+  serial.println(F("'C-69,-48,-220,122,144,50,': Set IMU calibration data"));
 }
 
 void UI::debug(HardwareSerial& serial) { serial.print("-"); }
