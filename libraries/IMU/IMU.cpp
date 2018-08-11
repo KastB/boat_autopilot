@@ -87,16 +87,19 @@ void IMU::update() {
   if (mpu->getIntDataReadyStatus() == 1)
   {
     mcount++;
-    // read the raw sensor data
-    mpu->getAcceleration(&a1, &a2, &a3);
-    ax = a1 * 2.0f / 32768.0f;  // 2 g full range for accelerometer
-    ay = a2 * 2.0f / 32768.0f;
-    az = a3 * 2.0f / 32768.0f;
+    if (mcount + 2 <= MagRateDivisor)
+    {
+		// read the raw sensor data
+		mpu->getAcceleration(&a1, &a2, &a3);
+		ax = a1 * 2.0f / 32768.0f;  // 2 g full range for accelerometer
+		ay = a2 * 2.0f / 32768.0f;
+		az = a3 * 2.0f / 32768.0f;
 
-    mpu->getRotation(&g1, &g2, &g3);
-    gx = g1 * 250.0f / 32768.0f;  // 250 deg/s full range for gyroscope
-    gy = g2 * 250.0f / 32768.0f;
-    gz = g3 * 250.0f / 32768.0f;
+		mpu->getRotation(&g1, &g2, &g3);
+		gx = g1 * 250.0f / 32768.0f;  // 250 deg/s full range for gyroscope
+		gy = g2 * 250.0f / 32768.0f;
+		gz = g3 * 250.0f / 32768.0f;
+    }
     /*  The gyros and accelerometers can in principle be calibrated in addition
      *to any factory calibration but they are generally pretty accurate. You can
      *check the accelerometer by making sure the reading is +1 g in the positive
@@ -121,13 +124,13 @@ void IMU::update() {
     // if cycle time is larger than 10ms older mag data will be used
     // I have no idea what happens with the gyro and acc reads during the passthrough
     // enabled mode => is this a problem?? Seemingly not
-    if (mcount + 2 > MagRateDivisor){
+    if (mcount + 2 == MagRateDivisor){
     	mpu->enablePassthrough();
     }
-    if (mcount + 1 > MagRateDivisor) {
+    if (mcount + 1 == MagRateDivisor) {
     	mpu->magTriggerMeasurement();
     }
-    if (mcount > MagRateDivisor) {
+    if (mcount == MagRateDivisor) {
       mpu->getMag(&m1, &m2, &m3);
 
       if (m_enableCalibration) {
@@ -640,3 +643,13 @@ void IMU::normalize(float &angle) {
     angle += 360.0f;
   }
 }
+void IMU::setMinMaxCalDat(const float min[3], const float max[3])
+{
+	for(int i = 0; i < 3; i++){
+		m_calDat.magMin[i] = min[i];
+	}
+	for(int i = 0; i < 3; i++){
+		m_calDat.magMax[i] = max[i];
+	}
+}
+

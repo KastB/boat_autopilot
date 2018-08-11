@@ -95,6 +95,7 @@ class IMU : public TimerClass {
   void resetRotationRef();
   void setFilterFrequency(float freq);
   void getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw);
+  void setMinMaxCalDat(const float min[3], const float max[3]);
 
  private:
   // Declare device MPU6050 class
