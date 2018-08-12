@@ -18,6 +18,7 @@
 #include <Motor.h>
 #include <PID.h>
 #include <Seatalk.h>
+#include <PowerSensors.h>
 
 #if SERIAL_TX_BUFFER_SIZE < 512
 { "Error: TX_Buffersize too small: latencies might occur"
@@ -37,6 +38,7 @@ GPS g_gps = GPS(10, &Serial);
 PID g_pid = PID(500, &g_imu, & g_seatalk, &g_motor);
 KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads
 UI g_ui = UI(50, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); //~8ms
+PowerSensors g_power = PowerSensors(100, 13, 15);
 
 void setup() {
   //=> Frequency: 16 000 000/2/1/800=10 000 on Pins 6,7,8 with phase-correct
@@ -61,6 +63,7 @@ void setup() {
   g_timer.addTimer(&g_imu);
   g_timer.addTimer(&g_seatalk);
   g_timer.addTimer(&g_gps);
+  g_timer.addTimer(&g_power);
 
   // Headers
   g_timer.debugHeader(Serial);
