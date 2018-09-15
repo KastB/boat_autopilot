@@ -20,10 +20,13 @@ def receive():
     global run
     while run:
         try:
-            data = client_socket.recv(BUFSIZ).decode("ASCII")
-            if len(data) == 0:
+            line = client_socket.recv(BUFSIZ).decode("ASCII")
+            if len(line) == 0:
                 connected = False
                 time.sleep(1)
+
+            if len(line) > 1:
+                data = decode_data(line)
             graph_data.append(data)
         except OSError:  # Possibly client has left the chat.
             break
@@ -39,14 +42,14 @@ def animate(i):
                        "magMax[0]",
                        "magMax[1]",
                        "magMax[2]"]
-    if True:
+    if False:
         data_points = ["yaw",
                        "pitch",
                        "roll"]
     if False:
         data_points = ["freq"]
 
-    if True:
+    if False:
         data_points = ["m_speed.tripMileage",
                        "m_speed.totalMileage"]
 
@@ -55,24 +58,27 @@ def animate(i):
                        "m_depth.depthBelowTransductor",
                        "m_depth.metricUnits",
                        "m_depth.unknown"]
-    if True:
+    if False:
         data_points = ["m_wind.apparentAngle"]
+
+    if False:
+        data_points = ["TargetPosition",
+                       "diagA",
+                       "diagB"]
 
 
     ys = []
     for i in data_points:
         ys.append([])
 
-    for line in graph_data:
-        if len(line) > 1:
-            data = decode_data(line)
-            try:
-                x = float(data["Millis"])
-                for dp in range(len(data_points)):
-                    ys[dp].append(float(data[data_points[dp]]))
-            except Exception as e:
-                continue
-            xs.append(x)
+    for data in graph_data:
+        try:
+            x = float(data["Millis"])
+            for dp in range(len(data_points)):
+                ys[dp].append(float(data[data_points[dp]]))
+        except Exception as e:
+            continue
+        xs.append(x)
     ax1.clear()
     for y in range(len(ys)):
         ax1.plot(xs, ys[y], label=data_points[y])
