@@ -9,11 +9,10 @@ from nmea_proxy.decode_raw_data import decode_data
 
 from threading import Thread
 
-SERIALPORTIN = "/dev/ttyS22"
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
 TEST = True
-DEBUG = False
+DEBUG = True
 global run
 run = True
 
@@ -61,7 +60,10 @@ def convert_and_send_as_nmea(out, data):
             print("freq:" + data["freq"])
 
     except Exception as e:
-        print(e)
+        if DEBUG:
+            print("Exception during conversion1")
+            print(data)
+            print(e)
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:nmea_converter
     try:
         wind_direction = float(data["m_wind.apparentAngle"]) / 180.0 * math.pi
@@ -81,7 +83,8 @@ def convert_and_send_as_nmea(out, data):
 
         out.write(pynmea2.MWV('II', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
     except (ValueError, ZeroDivisionError, KeyError) as e:
-        print(e)
+        if DEBUG:
+            print(e)
 
     # TODO: check for units:
     # depth: m_depth.metricUnits
@@ -105,13 +108,13 @@ def execute():
     receive_thread.start()
     try:
         if TEST:
-            fh = open(str(Path.home()) + "/data/autopilot2018-05-26.log")
+            fh = open(str(Path.home()) + "/data/autopilot2018-09-22.log")
         while True:
             try:
                 # get data
                 if TEST:
                     line = fh.readline()
-                    time.sleep(1)
+                    time.sleep(0.5)
                 else:
                     line = ser_in.readline().decode("ASCII")
                 if len(line) == 0:
@@ -125,7 +128,9 @@ def execute():
                     convert_and_send_as_nmea(out_nmea, data)
                 out_raw.write(line)
             except Exception as e:
-                print(e)
+                if DEBUG:
+                    print("Exception in main loop")
+                    print(e)
                 time.sleep(1)
 
     except KeyboardInterrupt:
