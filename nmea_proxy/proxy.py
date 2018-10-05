@@ -12,7 +12,7 @@ from threading import Thread
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
 TEST = True
-DEBUG = True
+DEBUG = False
 global run
 run = True
 
@@ -35,6 +35,8 @@ def new_serial(name, boud):
 def convert_and_send_as_nmea(out, data):
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
     # https://github.com/OpenCPN/OpenCPN/blob/c4fb6a0ad0205501ae902b57f9c64b7d0262a199/plugins/dashboard_pi/src/dashboard_pi.cpp
+    tws = -1.0
+    twd = -1.0
     try:
         out.write(pynmea2.MWV('II', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
         out.write(pynmea2.HDM('II', 'HDM', (data["yaw"], "M")).render(True, True, True))
@@ -85,7 +87,7 @@ def convert_and_send_as_nmea(out, data):
     except (ValueError, ZeroDivisionError, KeyError) as e:
         if DEBUG:
             print(e)
-
+    return (tws, twd)
     # TODO: check for units:
     # depth: m_depth.metricUnits
     # Windspeed
@@ -109,12 +111,14 @@ def execute():
     try:
         if TEST:
             fh = open(str(Path.home()) + "/data/autopilot2018-09-22.log")
+        vel = -1.0
         while True:
             try:
                 # get data
                 if TEST:
                     line = fh.readline()
-                    time.sleep(0.5)
+                    if not line.startswith("$"):
+                        time.sleep(0.5)
                 else:
                     line = ser_in.readline().decode("ASCII")
                 if len(line) == 0:
@@ -122,10 +126,13 @@ def execute():
                 # print(line)
                 if line.startswith("$"):
                     out_nmea.write(line)
+                    if line.startswith("$GPRMC"):
+                        vel = line.split(",")[7]
                 else:
                     data = decode_data(line)
                     # print(data)
-                    convert_and_send_as_nmea(out_nmea, data)
+                    tws, twd = convert_and_send_as_nmea(out_nmea, data)
+                    line = "{}\t{}\t{}\t{}\n".format(line.split("\n")[0].split("\r")[0],twd,tws,vel)
                 out_raw.write(line)
             except Exception as e:
                 if DEBUG:
@@ -153,7 +160,8 @@ def receive_function(out_nmea, out_raw, ser_in):
             if not TEST:
                 try:
                     for l in ret:
-                        ser_in.write("{}\n".format(l).encode("ASCII"))
+                        if not l == "watchdog":
+                            ser_in.write("{}\n".format(l).encode("ASCII"))
                 except Exception as e:
                     print(e)
         time.sleep(0.01)
