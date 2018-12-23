@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
-from pathlib import Path
-home = str(Path.home())
+from os.path import expanduser
+home = expanduser("~")
 
 
 imag1 = cv2.imread(home + '/src/boat_autopilot/data/test_images/segelschiff.png')          # queryImage

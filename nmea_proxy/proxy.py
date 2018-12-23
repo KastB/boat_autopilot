@@ -9,10 +9,9 @@ from nmea_proxy.decode_raw_data import decode_data
 
 from threading import Thread
 
-SERIALPORTIN = "/dev/ttyS22"
-SERIALPORTIN = "/dev/rfcomm0"
+SERIALPORTIN = "/dev/ttyUSB0"
 BAUDRATEIN = 115200
-TEST = True
+TEST = False
 DEBUG = False
 global run
 run = True
@@ -105,7 +104,7 @@ def execute():
     receive_thread.start()
     try:
         if TEST:
-            fh = open(str(Path.home()) + "/data/autopilot2018-05-26.log")
+            fh = open(str(Path.home()) + "/data/autopilot.log")
         while True:
             try:
                 # get data

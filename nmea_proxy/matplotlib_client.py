@@ -32,6 +32,7 @@ def receive():
 def animate(i):
     xs = []
     data_points = []
+    data_points = ["yaw"]
     if False:
         data_points = ["magMin[0]",
                        "magMin[1]",
@@ -46,7 +47,7 @@ def animate(i):
     if False:
         data_points = ["freq"]
 
-    if True:
+    if False:
         data_points = ["m_speed.tripMileage",
                        "m_speed.totalMileage"]
 
@@ -55,7 +56,7 @@ def animate(i):
                        "m_depth.depthBelowTransductor",
                        "m_depth.metricUnits",
                        "m_depth.unknown"]
-    if True:
+    if False:
         data_points = ["m_wind.apparentAngle"]
 
 
@@ -66,13 +67,16 @@ def animate(i):
     for line in graph_data:
         if len(line) > 1:
             data = decode_data(line)
+
             try:
                 x = float(data["Millis"])
                 for dp in range(len(data_points)):
+                    _ = float(data[data_points[dp]])
+                for dp in range(len(data_points)):
                     ys[dp].append(float(data[data_points[dp]]))
+                xs.append(x)
             except Exception as e:
                 continue
-            xs.append(x)
     ax1.clear()
     for y in range(len(ys)):
         ax1.plot(xs, ys[y], label=data_points[y])

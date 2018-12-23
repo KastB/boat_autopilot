@@ -22,13 +22,13 @@ do
     rfcomm | grep 'connected' &> /dev/null
     if [ $? == 0 ]; then
         echo "resetted"
-        /usr/share/arduino/hardware/tools/avr/bin/avrdude_orig $@
+        avrdude $@
         kill $cat_pid
         break
     fi
     sleep 0.1
 done
 else
-    /usr/share/arduino/hardware/tools/avr/bin/avrdude_orig $@
+    avrdude $@
 fi
 
