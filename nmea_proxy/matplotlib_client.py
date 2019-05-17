@@ -20,10 +20,13 @@ def receive():
     global run
     while run:
         try:
-            data = client_socket.recv(BUFSIZ).decode("ASCII")
-            if len(data) == 0:
+            line = client_socket.recv(BUFSIZ).decode("ASCII")
+            if len(line) == 0:
                 connected = False
                 time.sleep(1)
+
+            if len(line) > 1:
+                data = decode_data(line)
             graph_data.append(data)
         except OSError:  # Possibly client has left the chat.
             break
@@ -40,7 +43,7 @@ def animate(i):
                        "magMax[0]",
                        "magMax[1]",
                        "magMax[2]"]
-    if True:
+    if False:
         data_points = ["yaw",
                        "pitch",
                        "roll"]
@@ -58,6 +61,11 @@ def animate(i):
                        "m_depth.unknown"]
     if False:
         data_points = ["m_wind.apparentAngle"]
+
+    if False:
+        data_points = ["TargetPosition",
+                       "diagA",
+                       "diagB"]
 
 
     ys = []
@@ -77,6 +85,7 @@ def animate(i):
                 xs.append(x)
             except Exception as e:
                 continue
+        xs.append(x)
     ax1.clear()
     for y in range(len(ys)):
         ax1.plot(xs, ys[y], label=data_points[y])
