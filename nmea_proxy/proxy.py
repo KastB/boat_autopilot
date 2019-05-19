@@ -11,7 +11,7 @@ from threading import Thread
 
 SERIALPORTIN = "/dev/rfcomm0"
 BAUDRATEIN = 115200
-TEST = True
+TEST = False
 DEBUG = False
 global run
 run = True
