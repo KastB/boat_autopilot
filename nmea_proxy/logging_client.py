@@ -8,7 +8,8 @@ home = str(Path.home())
 
 
 # ----Now comes the sockets part----
-HOST = "127.0.0.1"
+# HOST = "127.0.0.1"
+HOST = "10.0.0.1"
 PORT = 2948
 
 BUFSIZ = 1024
