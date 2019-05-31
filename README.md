@@ -1,23 +1,37 @@
-# boat_autopilot (in progress)
-Modular autopilot for a sailboat based on an Arduino Mega
+# Autopilot for Sailboats
+Autopilot for a 12m sailboat based on an Arduino Mega as a controller and relay for different sensors, a raspberry pi as a proxy server to manage several clients and an android app as clients, that can be run on multiple devices simultaniously.
+In use for several years now.
 
 Overview
 ---------
+Features:
+  - Course relative to the wind
+  - Course relative to the compass
+  - Tacking
+  - Remote control via app or 433 Mhz remote
+  - Little rudder movement (at least for our configuration) with an easily parametrizable extended PID controller
 
-Current state is more a concept than a working autopilot. It's intendet to set up a autopilot for a sailboat weighing ~6t.
-It should be possible to set a heading or a angle to the appearent wind direction.
+There are several modules to make use of different sensors:
+  - seatalk interface to read wind speed/direction, vessel speed, water depth/temperature... from raymarine devices
+  - gps interface for nmea complient gps sensors
+  - position sensor for an incremental rotary sensor, to measure the position of the rudder
+  - ir for an ir remote control (hardy useful in the sun)
+  - keyboard for direct keyboard input
+  - ui for a bluetooth console input
+  - imu for an imu consisting of a magnetometer and accelerometer with autocalibration
+  - radio for a 433Mhz remote control
+ Additionally there is one module to control the motors to actuate the rudder and one module for the actual controller.
 
 Hardware
 --------
 
-The most difficult and most expensive part seems to be the actuator. Additional to that sensors, a control unit and user interfaces are neccessary.
 
 **Actuator**
 
-As linear actuators, that have a clutch to enable manual control while the autopilot is turned off are quite expensive a garage door drive is used to move the rudder. To compensate the distance offset between the radial movement of the rudder lever and the linear one of the door drive drawer rails are used.
-The motor of the door drive is designed of 24V but should work with the same force at half speed on 12V, that are available on the boat, too.
+As linear actuators, that have a clutch to enable manual control while the autopilot is turned off, are quite expensive a garage door drive is used to move the rudder. To compensate the distance offset between the radial movement of the rudder lever and the linear one of the door drive drawer rails are used.
+The motor of the door drive is designed of 24V but works well with 12V, that are available on the boat.
 As a motor controller a Olimex BB-VNH3SP30 is used.
-As a cluth the emergency unlocking of the door drive will be used, thus there is a complete mechanical decoupling possible on any failiure.
+The emergency unlocking of the door drive is used as a clutch, thus there is a complete mechanical decoupling possible on any failure.
 
 **Sensors**
 
