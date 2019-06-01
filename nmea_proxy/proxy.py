@@ -32,11 +32,12 @@ def new_serial(name, boud):
     return ser
 
 
-def convert_and_send_as_nmea(out, data):
+def convert_and_send_as_nmea(out, data, gps_vel):
     # https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:advanced_features:nmea_sentences
     # https://github.com/OpenCPN/OpenCPN/blob/c4fb6a0ad0205501ae902b57f9c64b7d0262a199/plugins/dashboard_pi/src/dashboard_pi.cpp
     tws = -1.0
     twd = -1.0
+    vmg = -1.0
     try:
         out.write(pynmea2.MWV('II', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
         out.write(pynmea2.HDM('II', 'HDM', (data["yaw"], "M")).render(True, True, True))
@@ -71,7 +72,8 @@ def convert_and_send_as_nmea(out, data):
         wind_direction = float(data["m_wind.apparentAngle"]) / 180.0 * math.pi
         wind_speed = float(data["m_wind.apparentSpeed"])
         boat_speed = float(data["m_speed"])
-
+        boat_speed = abs(float(gps_vel))
+        # print((boat_speed, wind_speed))
         boat_direction = 0.0
         u = boat_speed * math.sin(boat_direction) - wind_speed * math.sin(wind_direction)
         v = boat_speed * math.cos(boat_direction) - wind_speed * math.cos(wind_direction)
@@ -81,13 +83,14 @@ def convert_and_send_as_nmea(out, data):
         twd = 180.0 + math.atan2(u, v) * 180.0 / math.pi
         if twd < 0.0:
             twd += 360.0
+        vmg = str(boat_speed * math.cos(twd / 180.0 * math.pi))
         twd = str(twd)
 
         out.write(pynmea2.MWV('II', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
     except (ValueError, ZeroDivisionError, KeyError) as e:
         if DEBUG:
             print(e)
-    return (tws, twd)
+    return (tws, twd, vmg)
     # TODO: check for units:
     # depth: m_depth.metricUnits
     # Windspeed
@@ -131,8 +134,9 @@ def execute():
                 else:
                     data = decode_data(line)
                     # print(data)
-                    tws, twd = convert_and_send_as_nmea(out_nmea, data)
-                    line = "{}\t{}\t{}\t{}\n".format(line.split("\n")[0].split("\r")[0],twd,tws,vel)
+                    tws, twd, vmg = convert_and_send_as_nmea(out_nmea, data, vel)
+                    # print((tws, twd, vmg))
+                    line = "{},{},{},{},{}\n".format(line.split("\n")[0].split("\r")[0], twd, tws, vel, vmg)
                 out_raw.write(line)
             except Exception as e:
                 if DEBUG:

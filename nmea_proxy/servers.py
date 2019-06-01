@@ -6,6 +6,8 @@ Description
 import socket
 import threading
 import time
+import os
+
 
 class UDPServer(object):
     def __init__(self, ip, port, broadcast=False):
@@ -89,6 +91,12 @@ class TCPServer(object):
                 msg = client.recv(self.buffer_size).decode("ASCII")
                 if msg == "":
                     break
+                if msg.startswith("#"):
+                    if msg.startswith("#REBOOT"):
+                        os.system("sudo reboot")
+                    elif msg.startswith("#SHUTDOWN"):
+                        os.system("sudo poweroff")
+
                 self.acquire_lock()
                 self.out_buffer.append(msg)
                 self.release_lock()
