@@ -21,10 +21,10 @@ void PowerSensors::setFilterFrequency(float freq) {
 }
 
 void PowerSensors::update() {
-	float voltage = float(analogRead(m_voltagePin) * 12) / 4.3f / 1023.0f;
+	float voltage = float(analogRead(m_voltagePin)) * 12.0f * 5.0f / 4.3f / 1023.0f;
 	if (voltage > m_voltage / 2.0f)
 		m_voltage = voltage;
-	m_current = (float(analogRead(m_currentPin)) / 1023.0f - 2.5f) * 30.0f / 2.5f;
+	m_current = (float(analogRead(m_currentPin)) / 1023.0f * 5.0f - 2.5f) * 30.0f / 2.5f;
 	m_lowpassOutput->input(m_voltage*m_current);
 }
 

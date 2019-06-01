@@ -5,7 +5,7 @@
  *  Created on: 25.08.2015
  *
  *
- *
+ * TODO: use gps heading instead of imu for magnetic course (maybe even for wind) => gprmc
  *  KpKrit = 60
  *  TKrit = 19s
  *
