@@ -29,7 +29,7 @@ void PowerSensors::update() {
 }
 
 void PowerSensors::debug(HardwareSerial &serial) {
-  char spacer = '\t';
+  char spacer = ',';
   serial.print(m_voltage);
   serial.print(spacer);
   serial.print(m_current);
@@ -38,5 +38,5 @@ void PowerSensors::debug(HardwareSerial &serial) {
 }
 
 void PowerSensors::debugHeader(HardwareSerial &serial) {
-  serial.print("m_voltage\tm_current\tm_power\t");
+  serial.print("m_voltage,m_current,m_power,");
 }

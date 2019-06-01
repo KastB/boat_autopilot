@@ -289,7 +289,7 @@ void Seatalk::normalize(float &angle)
 }
 
 void Seatalk::debug(HardwareSerial& serial) {
-  char spacer = '\t';
+  char spacer = ',';
   serial.print(m_speed.speed);
   serial.print(spacer);
   serial.print(m_speed.tripMileage);
@@ -327,10 +327,10 @@ void Seatalk::debug(HardwareSerial& serial) {
 
 void Seatalk::debugHeader(HardwareSerial& serial) {
   serial.print(
-      F("m_speed\tm_speed.tripMileage\tm_speed.totalMileage\tm_speed."
-        "waterTemp\tm_lampIntensity\tm_wind.apparentAngle\tm_wind."
-        "apparentSpeed\tm_wind.displayInKnots\tm_wind.displayInMpS\tm_depth."
-        "anchorAlarm\tm_depth.deepAlarm\tm_depth.defective\tm_depth."
-        "depthBelowTransductor\tm_depth.metricUnits\tm_depth.shallowAlarm\tm_"
+      F("m_speed,m_speed.tripMileage,m_speed.totalMileage,m_speed."
+        "waterTemp,m_lampIntensity,m_wind.apparentAngle,m_wind."
+        "apparentSpeed,m_wind.displayInKnots,m_wind.displayInMpS,m_depth."
+        "anchorAlarm,m_depth.deepAlarm,m_depth.defective,m_depth."
+        "depthBelowTransductor,m_depth.metricUnits,m_depth.shallowAlarm,m_"
         "depth.unknown"));
 }

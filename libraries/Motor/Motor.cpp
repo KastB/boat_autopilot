@@ -207,14 +207,12 @@ void Motor::update() {
 }
 
 void Motor::debug(HardwareSerial& serial) {
-  char spacer = '\t';
+  char spacer = ',';
   serial.print(m_rotaryEncoder->getCurrentPosition());
   serial.print(spacer);
   serial.print((int)m_currentDirection);
   serial.print(spacer);
   serial.print(m_targetPosition);
-  serial.print(spacer);
-  serial.print(m_MSStopped);
   serial.print(spacer);
   serial.print((digitalRead(m_startPin) == LOW));
   serial.print(spacer);
@@ -229,6 +227,6 @@ void Motor::debug(HardwareSerial& serial) {
 
 void Motor::debugHeader(HardwareSerial& serial) {
   serial.print(
-      F("CurrentPosition\tCurrentDirection\tTargetPosition\tMSStopped\tstartBut"
-        "ton\tstopButton\tparkingButton\tDiagA\tDiagB"));
+      F("CurrentPosition,CurrentDirection,TargetPosition,startBut"
+        "ton,stopButton,parkingButton,DiagA,DiagB"));
 }

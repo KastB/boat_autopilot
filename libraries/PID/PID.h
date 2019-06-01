@@ -48,7 +48,7 @@ class PID : public TimerClass {
 
   float m_errorSum;
   float m_lastError;
-  float m_lastFilteredYaw;
+  float m_lastYaw;
   unsigned long m_lastTime;
 
   unsigned long

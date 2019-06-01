@@ -94,7 +94,7 @@ class IMU : public TimerClass {
   void setCalibrationOffset(float offset);
   void resetRotationRef();
   void setFilterFrequency(float freq);
-  void getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw);
+  void getRPY(float &roll, float &pitch, float &yaw);
   void setMinMaxCalDat(const float min[3], const float max[3]);
 
  private:

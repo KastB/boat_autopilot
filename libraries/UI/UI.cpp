@@ -81,11 +81,12 @@ void UI::update() {
         break;
     }
   }
-
-  String kpdCmd = m_kpd->getCommand();
-  if (kpdCmd != "") {
-    exec(kpdCmd);
-    Serial.println(kpdCmd);
+  if (m_kpd != NULL) {
+	  String kpdCmd = m_kpd->getCommand();
+	  if (kpdCmd != "") {
+		exec(kpdCmd);
+		Serial.println(kpdCmd);
+	  }
   }
 
   if (m_counter >= m_debugDevisor) {

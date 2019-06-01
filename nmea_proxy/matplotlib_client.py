@@ -67,24 +67,22 @@ def animate(i):
                        "diagA",
                        "diagB"]
 
+    data_points = ["CurrentPosition", "m_currentPosition"]
 
     ys = []
     for i in data_points:
         ys.append([])
 
-    for line in graph_data:
-        if len(line) > 1:
-            data = decode_data(line)
-
-            try:
-                x = float(data["Millis"])
-                for dp in range(len(data_points)):
-                    _ = float(data[data_points[dp]])
-                for dp in range(len(data_points)):
-                    ys[dp].append(float(data[data_points[dp]]))
-                xs.append(x)
-            except Exception as e:
-                continue
+    for data in graph_data:
+        try:
+            x = float(data["Millis"])
+            for dp in range(len(data_points)):
+                _ = float(data[data_points[dp]])
+            for dp in range(len(data_points)):
+                ys[dp].append(float(data[data_points[dp]]))
+            xs.append(x)
+        except Exception as e:
+            continue
         xs.append(x)
     ax1.clear()
     for y in range(len(ys)):
@@ -93,7 +91,8 @@ def animate(i):
     # ax1.set_ylim(bottom=-10, top=10)
 
 # ----Now comes the sockets part----
-HOST = "127.0.0.1"
+#HOST = "127.0.0.1"
+HOST = "10.0.0.1"
 PORT = 2948
 
 BUFSIZ = 1024

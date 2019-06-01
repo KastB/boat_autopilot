@@ -19,29 +19,29 @@ void TimersClass::checkAndRunUpdate() {
 	start = millis();
     m_timers[i]->checkAndRunUpdate();
     /*
-    if(millis() - start > 8)
+    if( > 8)
     {
     	Serial.print(i);
     	Serial.print("##");
     	Serial.println(millis() - start);
     }
-    */
+	*/
   }
 
 }
 void TimersClass::debug(HardwareSerial& serial) {
   serial.print(millis());
   for (int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++) {
-    serial.print("\t");
+    serial.print(",");
     m_timers[i]->debug(serial);
   }
   serial.println("");
 }
 void TimersClass::debugHeader(HardwareSerial& serial) {
-  serial.print(F("Millis\t"));
+  serial.print(F("Millis,"));
   for (int i = 0; i < MAXTIMERCLASSES && m_timers[i] != NULL; i++) {
     m_timers[i]->debugHeader(serial);
-    serial.print("\t");
+    serial.print(",");
   }
   serial.println("");
 }

@@ -44,7 +44,7 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_lastTime = millis();
 	m_errorSum = 0.0f;
 	m_lastError = 0.0f;
-	m_lastFilteredYaw = 0.0f;
+	m_lastYaw = 0.0f;
 
 	m_tackStartTime = 0;
 	m_tackMinTime = 1000;
@@ -75,9 +75,9 @@ void PID::setWind(float goal) {
 }
 
 void PID::setMag() {
-	float roll, pitch, yaw, filteredYaw;
-	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
-	setMag(filteredYaw);
+	float roll, pitch, yaw;
+	m_imu->getRPY(roll, pitch, yaw);
+	setMag(yaw);
 }
 void PID::setMag(float goal) {
 	m_goal = goal;
@@ -111,11 +111,11 @@ void PID::update() {
 	unsigned long currentTime = millis();
 	float error;
 	int position;
-	float roll, pitch, yaw, filteredYaw, current_direction;
+	float roll, pitch, yaw, current_direction;
 	boolean increase_error = false;
-	m_imu->getRPY(roll, pitch, yaw, filteredYaw);
+	m_imu->getRPY(roll, pitch, yaw);
 
-  if (m_goalType == MAGNET) {
+	if (m_goalType == MAGNET) {
 		current_direction = yaw;
 		normalize(current_direction);
 		error = m_goal - current_direction;
@@ -132,45 +132,50 @@ void PID::update() {
 	} else {
 		m_lastError = 0.0;
 		m_lastTime = currentTime;
-		m_lastFilteredYaw = filteredYaw;
+		m_lastYaw = yaw;
 		return;
 	}
 	normalize(error);
 
-  if (fabs(error) < m_settled) { // smaller P value for settled system => less
+	if (fabs(error) < m_settled) { // smaller P value for settled system => less
                                  // unnecessary rudder movements
 		p = m_P2;
-  }
-  else if (fabs(error) < 2.0f * m_settled) { // larger P value for unsettled
-                                             // system => faster response
-		p = m_P;
-  }
-	else								// smooth transition between settled and unsettled system
-	{
-		p = m_P2 + (m_P - m_P2) / m_settled * (fabs(error)-m_settled);
 	}
-	if (increase_error) p = m_P * 1.1f;
+	else if (fabs(error) < 2.0f * m_settled) { // larger P value for unsettled
+											 // system => faster response
+		p = m_P;
+	}
+	else {							// smooth transition between settled and unsettled system
+		p = m_P2 + (m_P - m_P2) / m_settled * (fabs(error) - m_settled);
+	}
+	if (increase_error) {
+		p = m_P * 1.1f;
+	}
 
-	if( currentTime > m_lastTime) //overflow handling
+	if(currentTime > m_lastTime) //overflow handling
 	{
 		float dt = (currentTime - m_lastTime);
 		dt = dt / 1000.0f;
 
-		float rotVel = (m_lastFilteredYaw - filteredYaw);
+		float rotVel = (m_lastYaw - yaw);
 		normalize(rotVel);
 
 		rotVel /= dt;
 
-    if (currentTime > m_InoUpdate) {
-      if (fabs(rotVel) > m_rotVelDyn || m_motor->getBlocked()) {
+		if (currentTime > m_InoUpdate) {
+			if (fabs(rotVel) > m_rotVelDyn || m_motor->getBlocked()) {
 				float tmp = m_errorSum + error * dt;
-        if (fabs(tmp) < fabs(m_errorSum)) m_errorSum = tmp;
-      } else {
+				if (fabs(tmp) < fabs(m_errorSum)){
+					m_errorSum = tmp;
+				}
+			} else {
 				m_errorSum += error * dt;
 			}
 		}
 
-    if (m_errorSum != m_errorSum) m_errorSum = 0.0;
+		if (m_errorSum != m_errorSum) {
+			m_errorSum = 0.0;
+		}
 
 		position = 	p * error +
 					//Faster turns should be more damped => quadratic term
@@ -180,7 +185,7 @@ void PID::update() {
 		//set position
 		m_lowpassOutput->input(position);
 		m_motor->gotoPos(m_lowpassOutput->output());
-		m_lastFilteredYaw = filteredYaw;
+		m_lastYaw = yaw;
 	}
 	m_lastError = error;
 	m_lastTime = currentTime;
@@ -232,7 +237,7 @@ void PID::normalize(float &angle)
 }
 
 void PID::debug(HardwareSerial &serial) {
-  char spacer = '\t';
+  char spacer = ',';
   serial.print(m_P);
   serial.print(spacer);
   serial.print(m_I);
@@ -247,11 +252,11 @@ void PID::debug(HardwareSerial &serial) {
   serial.print(spacer);
   serial.print(m_errorSum);
   serial.print(spacer);
-  serial.print(m_lastFilteredYaw);
+  serial.print(m_lastYaw);
 }
 
 void PID::debugHeader(HardwareSerial &serial) {
   serial.print(
-      "m_P\tm_I\tm_D\tm_goalType\tm_goal\tm_lastError\tm_errorSum\tm_"
+      "m_P,m_I,m_D,m_goalType,m_goal,m_lastError,m_errorSum,m_"
       "lastFilteredYaw");
 }

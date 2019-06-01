@@ -437,11 +437,10 @@ void IMU::MahonyQuaternionUpdate(float ax, float ay, float az, float gx,
   updateRPY();
 }
 
-void IMU::getRPY(float &roll, float &pitch, float &yaw, float &filteredYaw) {
+void IMU::getRPY(float &roll, float &pitch, float &yaw) {
   roll = m_roll;
   pitch = m_pitch;
-  yaw = m_yaw;
-  filteredYaw = m_filteredYaw;
+  yaw = m_filteredYaw;
 }
 
 void IMU::quaternion_product(float *q1, float *q2, float *r)  // w,x,y,z
@@ -464,11 +463,11 @@ void IMU::quaternion_inverse(float *q, float *i)  // w,x,y,z
 
 void IMU::quaternion_print(float *q) {
   Serial.print(q[0]);
-  Serial.print("\t");
+  Serial.print(",");
   Serial.print(q[1]);
-  Serial.print("\t");
+  Serial.print(",");
   Serial.print(q[2]);
-  Serial.print("\t");
+  Serial.print(",");
   Serial.println(q[3]);
 }
 
@@ -517,9 +516,9 @@ void IMU::updateRPY() {
   m_filteredYaw = m_lowpassFilter->input(m_yaw);
 }
 void IMU::debug(HardwareSerial &serial) {
-  float roll, pitch, yaw, filteredYaw;
-  char spacer = '\t';
-  getRPY(roll, pitch, yaw, filteredYaw);
+  float roll, pitch, yaw;
+  char spacer = ',';
+  getRPY(roll, pitch, yaw);
   serial.print(yaw);
   serial.print(spacer);
   serial.print(roll);
@@ -543,8 +542,8 @@ void IMU::debug(HardwareSerial &serial) {
 
 void IMU::debugHeader(HardwareSerial &serial) {
   serial.print(
-      F("yaw\troll\tpitch\tfreq\tmagMin[0]\tmagMin[1]\tmagMin[2]\tmagMax[0]"
-        "\tmagMax[1]\tmagMax[2]"));
+      F("yaw,roll,pitch,freq,magMin[0],magMin[1],magMin[2],magMax[0]"
+        ",magMax[1],magMax[2]"));
 }
 
 void IMU::deleteCalibration() {

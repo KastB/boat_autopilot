@@ -2,10 +2,6 @@
 //TODO: maybe smooth motor
 //TODO: imu gets nans and keeps them =>either prevent or deal with them
 
-//TODO: bluetooth mode doesnt work anymore
-//TODO: log file
-//TODO: write readme: high frequencies => exceptions with public intentbroadcast
-//TODO: test new communication scheme
 #include <IR.h>
 #include <Radio.h>
 #include <RotaryEncoder.h>
@@ -28,7 +24,7 @@
 // Connection Handlers
 
 TimersClass g_timer;
-Radio g_radio = Radio(50, 0, 10);
+// Radio g_radio = Radio(50, 0, 10);
 //IR g_ir =	IR(50, 2);
 RotaryEncoder g_rotaryEncoder = RotaryEncoder(2, 9, 8);
 Motor g_motor = Motor(50, &g_rotaryEncoder);
@@ -36,8 +32,8 @@ IMU	g_imu = IMU(10); // 7-11ms, every 10th 27 when getMagBlocking is used
 Seatalk g_seatalk = Seatalk(5); //needs to be called with rather high frequency in order to detect corrupt messages without 9-bit mode (without using command bit)
 GPS g_gps = GPS(10, &Serial);
 PID g_pid = PID(500, &g_imu, & g_seatalk, &g_motor);
-KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads
-UI g_ui = UI(50, NULL, &g_radio, &g_motor,&g_pid, &g_imu, &g_keypadWrapper, &g_timer); //~8ms
+// KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads
+UI g_ui = UI(50, NULL, NULL, &g_motor,&g_pid, &g_imu, NULL, &g_timer); //~8ms
 PowerSensors g_power = PowerSensors(100, 13, 15);
 
 void setup() {
@@ -55,7 +51,7 @@ void setup() {
 
   // Timers
   g_timer.addTimer(&g_rotaryEncoder);
-  g_timer.addTimer(&g_radio);
+  //	g_timer.addTimer(&g_radio);
   //	g_timer.addTimer(&g_ir);
   g_timer.addTimer(&g_motor);
   g_timer.addTimer(&g_pid);
