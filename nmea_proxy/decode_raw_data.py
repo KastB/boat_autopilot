@@ -8,8 +8,4 @@ def decode_data(l):
     data = dict()
     for e, d in zip(HEADER.split(','), dat):
         data[e] = d
-    try:
-        print(data["m_speed.tripMileage"])
-    except KeyError:
-        pass
     return data
