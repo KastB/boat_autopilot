@@ -117,6 +117,10 @@ void UI::exec(String cmd) {
     m_pid->setInactiv();
     m_motor->initialize();
     m_pid->resetErrorSum();
+  } else if (cmd == "Z") {
+	  m_pid->setInactiv();
+	  m_pid->resetErrorSum();
+	  m_motor->m_rotaryEncoder->m_currentPosition = 0;
   } else if (cmd == "RI") {
     m_pid->setInactiv();
     m_motor->reinitialize();
