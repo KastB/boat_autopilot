@@ -81,6 +81,8 @@ class TCPServer(object):
                 c.send(msg.encode("ASCII"))
             except Exception as e:
                 print(e)
+                print(self.ip)
+                print(self.port)
                 self.clients.remove(c)
         self.release_lock()
 
