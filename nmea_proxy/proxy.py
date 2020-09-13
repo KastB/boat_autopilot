@@ -6,6 +6,7 @@ import time
 
 from nmea_proxy.servers import TCPServer
 from nmea_proxy.decode_raw_data import decode_data
+from nmea_proxy.signalk_client import SignalKClient
 
 from threading import Thread
 
@@ -39,18 +40,18 @@ def convert_and_send_as_nmea(out, data, gps_vel):
     twd = -1.0
     vmg = -1.0
     try:
-        out.write(pynmea2.MWV('II', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
-        out.write(pynmea2.HDM('II', 'HDM', (data["yaw"], "M")).render(True, True, True))
-        out.write(pynmea2.DPT('II', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
-        out.write(pynmea2.MTW('II', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
-        #out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
-        out.write(pynmea2.VHW('II', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        #out.write(pynmea2.MWV('II', 'MWV', (str(float(data["m_wind.apparentAngle"])), "R", data["m_wind.apparentSpeed"], "K", "A")).render(True, True, True))
+        #out.write(pynmea2.HDM('II', 'HDM', (data["yaw"], "M")).render(True, True, True))
+        #out.write(pynmea2.DPT('II', 'DPT', (data["m_depth.depthBelowTransductor"], "0.5", "70.0")).render(True, True, True))
+        #out.write(pynmea2.MTW('II', 'MTW', (data["m_speed.waterTemp"], "C")).render(True, True, True))
+        ##out.write(pynmea2.VTG('II', 'VTG', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
+        #out.write(pynmea2.VHW('II', 'VHW', ("0.0", "T", "0.0", "M", data["m_speed"], "N", str(float(data["m_speed"]) * 1.8), "K")).render(True, True, True))
 
         out.write(pynmea2.XDR('II', 'XDR', ("A", str(-float(data["roll"])), "", "ROLL")).render(True, True, True))
         out.write(pynmea2.XDR('II', 'XDR', ("A", data["pitch"], "", "PITCH")).render(True, True, True))
 
         angle = str(float(data["m_currentPosition"]) / 5)
-        out.write(pynmea2.RSA('II', 'RSA', (angle, "A", "0.0", "V")).render(True, True, True))
+        #out.write(pynmea2.RSA('II', 'RSA', (angle, "A", "0.0", "V")).render(True, True, True))
         position_information = data["Position"].split("##")
         if len(position_information) > 0:
             for p in position_information:
@@ -86,7 +87,7 @@ def convert_and_send_as_nmea(out, data, gps_vel):
         vmg = str(boat_speed * math.cos(twd / 180.0 * math.pi))
         twd = str(twd)
 
-        out.write(pynmea2.MWV('II', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
+        #out.write(pynmea2.MWV('II', 'MWV', (twd, "T", tws, "N", "A")).render(True, True, True))
     except (ValueError, ZeroDivisionError, KeyError) as e:
         if DEBUG:
             print(e)
@@ -104,13 +105,17 @@ def execute():
     if not TEST:
         ser_in = new_serial(SERIALPORTIN, BAUDRATEIN)
     # out_nmea = UDPServer("127.0.0.1", 2947)
-    out_nmea = TCPServer("0.0.0.0", 2947)
+    out_nmea = TCPServer("0.0.0.0", 2949)
     out_raw = TCPServer("0.0.0.0", 2948)
+    signalk_client = SignalKClient()
 
     print('Starting Up Serial Monitor')
     fh = None
     receive_thread = Thread(target=receive_function, args=(out_nmea, out_raw, ser_in,))
     receive_thread.start()
+
+    signalk_thread = Thread(target=signalk_client.bridge_client, args=(ser_in,))
+    signalk_thread.start()
     try:
         if TEST:
             fh = open(str(Path.home()) + "/data/autopilot2018-09-22.log")
@@ -126,7 +131,6 @@ def execute():
                     line = ser_in.readline().decode("ASCII")
                 if len(line) == 0:
                     break
-                # print(line)
                 if line.startswith("$"):
                     out_nmea.write(line)
                     if line.startswith("$GPRMC"):
@@ -151,6 +155,7 @@ def execute():
         out_nmea.close()
         out_raw.close()
         receive_thread.join()
+        signalk_thread.join()
         if TEST:
             fh.close()
 
