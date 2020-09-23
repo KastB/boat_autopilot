@@ -13,11 +13,12 @@
 #include <Radio.h>
 #include "KeypadWrapper.h"
 #include "TimersClass.h"
+#include "Seatalk.h"
 
 class UI : public TimerClass {
  public:
   UI(unsigned long interval, IR *ir, Radio *radio, Motor *motor, PID *pid,
-     IMU *imu, KeypadWrapper *kpd, TimersClass *timer);
+     IMU *imu, KeypadWrapper *kpd, TimersClass *timer, Seatalk *seatalk);
   virtual ~UI();
   void update();
   void debug(HardwareSerial &serial);
@@ -39,6 +40,7 @@ class UI : public TimerClass {
   Motor *m_motor;
   PID *m_pid;
   IMU *m_imu;
+  Seatalk *m_seatalk;
   KeypadWrapper *m_kpd;
   TimersClass *m_timer;
 };

@@ -2,8 +2,8 @@
 //TODO: maybe smooth motor
 //TODO: imu gets nans and keeps them =>either prevent or deal with them
 
-#include <IR.h>
-#include <Radio.h>
+//#include <IR.h>
+//#include <Radio.h>
 #include <RotaryEncoder.h>
 #include <TimersClass.h>
 #include <UI.h>
@@ -33,7 +33,7 @@ Seatalk g_seatalk = Seatalk(5); //needs to be called with rather high frequency 
 GPS g_gps = GPS(10, &Serial);
 PID g_pid = PID(500, &g_imu, & g_seatalk, &g_motor);
 // KeypadWrapper	g_keypadWrapper	=	KeypadWrapper	(25); // vermutlich kürzer als 2ms => 16 analog reads
-UI g_ui = UI(50, NULL, NULL, &g_motor,&g_pid, &g_imu, NULL, &g_timer); //~8ms
+UI g_ui = UI(50, NULL, NULL, &g_motor,&g_pid, &g_imu, NULL, &g_timer, &g_seatalk); //~8ms
 PowerSensors g_power = PowerSensors(100, 13, 15);
 
 void setup() {

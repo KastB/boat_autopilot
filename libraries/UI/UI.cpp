@@ -10,7 +10,7 @@
 #include "UI.h"
 
 UI::UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid,
-       IMU* imu, KeypadWrapper* kpd, TimersClass* timer) {
+       IMU* imu, KeypadWrapper* kpd, TimersClass* timer, Seatalk* seatalk) {
   m_interval = interval;
   // m_uiState = NORMAL;
   m_ir = ir;
@@ -20,6 +20,7 @@ UI::UI(unsigned long interval, IR* ir, Radio* radio, Motor* motor, PID* pid,
   m_kpd = kpd;
   m_timer = timer;
   m_radio = radio;
+  m_seatalk = seatalk;
 
   m_cmdSerial = "";
   m_cmdKeypad = "";
@@ -166,6 +167,19 @@ void UI::exec(String cmd) {
         case 'O':
           m_imu->setCalibrationOffset(value * PI / 180.0f);
           break;
+        case 'W':
+          m_seatalk->m_wind.apparentAngle = value;
+          m_seatalk->m_wind.apparentAngleFiltered->input(value);
+          break;
+        case 'X':
+        	m_seatalk->m_wind.apparentSpeed =value;
+			break;
+        case 'Y':
+        	m_seatalk->m_depth.depthBelowTransductor = value;
+			break;
+        case 'Z':
+        	m_seatalk->m_speed.waterTemp = value;
+        	break;
         default:
           break;
       }
