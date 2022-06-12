@@ -9,3 +9,15 @@ def decode_data(l):
     for e, d in zip(HEADER.split(','), dat):
         data[e] = d
     return data
+
+def raw2json(raw):
+    ret = dict()
+    raw_list = raw.split(",")
+    header_list = HEADER.split(",")
+    if(len(raw_list) < len(header_list)):
+        # print(f"Warning raw2json: lengths dont match {len(raw_list)} vs {len(header_list)}: {HEADER} vs {raw_list}")
+        return ret
+    for i in range(min(len(raw_list), len(header_list))):
+        ret[header_list[i].lower()] = raw_list[i]
+    return ret
+    
