@@ -23,18 +23,20 @@ class SignalKClient(object):
                         for v in u["values"]:
                             SignalKClient.data[v["path"]] = v["value"]
                 """
-                ws.send(json.dumps({
-                                        "path": 'steering.autopilot',
-                                        "value": { "state": "off" },
-                                        # context: 'vessels.urn:mrn:signalk:uuid:a9d2c3b1-611b-4b00-8628-0b89d014ed60',
-                                        "source": {
-                                            "label": 'autopilot_init',
-                                            "type": 'SignalK'
-                                        },
-                                        '$source': 'SignalKInit',
-                                        #timestamp: '2014-08-15T19:00:02.392Z'
-                                        }))
+                async with websockets.connect("ws://10.10.10.1:3001/signalk/v1/stream") as ws2:
+                    ws2.send(json.dumps({
+                                            "path": 'steering.autopilot',
+                                            "value": { "state": "off" },
+                                            # context: 'vessels.urn:mrn:signalk:uuid:a9d2c3b1-611b-4b00-8628-0b89d014ed60',
+                                            "source": {
+                                                "label": 'autopilot_init',
+                                                "type": 'SignalK'
+                                            },
+                                            '$source': 'SignalKInit',
+                                            #timestamp: '2014-08-15T19:00:02.392Z'
+                                            }))
                 """
+                
 
     async def print_data():
         while True:
