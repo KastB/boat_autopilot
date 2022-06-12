@@ -71,7 +71,7 @@ class Seatalk : public TimerClass {
       apparentSpeed = 0.0f;
       displayInKnots = true;
       displayInMpS = false;
-      apparentAngleFiltered = new FilterOrientation(LOWPASS, 1.0f);
+      apparentAngleFiltered = new FilterOrientation(LOWPASS, 0.05f);
     }
     ~wind() { delete (apparentAngleFiltered); }
   };

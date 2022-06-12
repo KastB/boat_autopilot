@@ -36,6 +36,7 @@ void UI::update() {
   // Serial commands
   while (Serial.available() > 0) {
     char incoming = Serial.read();
+    // Serial.print(incoming);
     if (incoming != '\n' && incoming != ' ' && incoming != '\r') {
       m_cmdSerial += incoming;
     } else {
@@ -221,9 +222,10 @@ void UI::exec(String cmd) {
     	}
     	Serial.println(index);
 
-    	if (index == 6)
+    	if (index == 6) {
     		Serial.println("setting");
     		m_imu->setMinMaxCalDat(values, values+3);
+    	}
     }
   }
 }

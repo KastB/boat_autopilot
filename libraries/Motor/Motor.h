@@ -57,6 +57,8 @@ class Motor : public TimerClass {
   int m_minimalSpeed;
   int m_maximalSpeed;
   int m_hysteresis;
+  float m_maxAcceleration;
+  float m_lastSpeed;
 
   bool m_parking;
 

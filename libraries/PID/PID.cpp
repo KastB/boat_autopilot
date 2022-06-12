@@ -57,12 +57,14 @@ PID::PID(unsigned long interval, IMU *imu, Seatalk *seatalk, Motor *motor) {
 	m_lowpassOutput = new FilterOnePole ( LOWPASS, 1.0 );
 
 	m_closeHauledAngle = 45.0f;
+	m_lowpassOutput->setToNewValue(m_motor->getCurrentPosition());
 }
 
 PID::~PID() {}
 
 void PID::setFilterFrequency(float freq) {
 	m_lowpassOutput->setFrequency(freq);
+	m_lowpassOutput->setToNewValue(m_motor->getCurrentPosition());
 }
 
 void PID::setWind() { setWind(m_seatalk->m_wind.apparentAngle); }
@@ -122,7 +124,7 @@ void PID::update() {
 	}
 	else if(m_goalType == WIND)
 	{
-		current_direction = m_seatalk->m_wind.apparentAngle;
+		current_direction = m_seatalk->m_wind.apparentAngleFiltered->output();
 		normalize(current_direction);
 		error = current_direction - m_goal;
 

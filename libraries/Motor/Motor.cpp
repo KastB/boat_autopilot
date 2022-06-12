@@ -21,8 +21,10 @@ Motor::Motor(unsigned long interval, RotaryEncoder* rotary_encoder, int ina,
 
   m_minimalSpeed = 400;
   m_maximalSpeed = 800;
-  m_speedFactor = 20.0f;
+  m_speedFactor = 15.0f;
   m_hysteresis = 3;
+  m_maxAcceleration = 40;
+  m_lastSpeed = 0.0;
 
   m_inaPin = ina;
   m_inbPin = inb;
@@ -99,6 +101,8 @@ void Motor::motor_ccw(int speed) {
 void Motor::motor_stop() {
   // Serial.println("stop");
   m_targetPosition = m_rotaryEncoder->getCurrentPosition();
+  m_lastSpeed = 0;
+  m_currentDirection = STOP;
   digitalWrite(m_inaPin, LOW);
   digitalWrite(m_inbPin, LOW);
   analogWrite(m_pwmPin, 0);
@@ -199,10 +203,44 @@ void Motor::update() {
     speed = delta * m_speedFactor;
     speed += m_minimalSpeed * 3 / 4;
 
-    if (speed < m_minimalSpeed) d = STOP;
     if (speed > m_maximalSpeed) speed = m_maximalSpeed;
 
+
+    // Serial.print(String("p") + speed + "#" + d + "#" + m_rotaryEncoder->getCurrentPosition());
+
+    if(m_currentDirection != d && m_currentDirection != STOP) {
+    	speed = m_lastSpeed - m_maxAcceleration;
+    	if (speed < m_minimalSpeed) {
+    		speed = m_minimalSpeed;
+    	}
+    	else {
+    		d = m_currentDirection;
+    	}
+    }
+    else {
+    	if (m_lastSpeed < m_minimalSpeed) {
+    		m_lastSpeed = m_minimalSpeed;
+    	}
+    	if(fabs(speed - m_lastSpeed) > m_maxAcceleration) {
+    		if(speed < m_lastSpeed) {
+    			speed = m_lastSpeed - m_maxAcceleration;
+    		}
+    		else {
+    			speed = m_lastSpeed + m_maxAcceleration;
+    		}
+    	}
+    }
+    // Serial.println(String("up") + speed + "#" + d);
+
+    if (speed < 0.0) speed = 0.0;
+    if (speed < m_minimalSpeed) {
+    	d = STOP;
+    	speed = 0;
+    }
     controlMotor(d, speed);
+
+    m_lastSpeed = speed;
+
   }
 }
 
